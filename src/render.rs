@@ -1,6 +1,7 @@
 //! Server-side rendering of the page and the JSON view.
 use crate::config::Reference;
 use crate::model::*;
+use crate::projection::*;
 use chrono::{DateTime, FixedOffset, TimeZone, Utc};
 use std::fmt::Write;
 
@@ -141,7 +142,7 @@ fn precinct_line(c: &Contest) -> String {
     }
 }
 
-fn map_svg(reference: &Reference, feeds: &[FeedResult], view: View) -> String {
+fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection>, view: View) -> String {
     let m = &reference.map;
     let mut o = String::new();
     let _ = write!(
@@ -157,7 +158,27 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], view: View) -> String {
         o.push_str("<defs>");
         for code in m.states.keys() {
             let total = reference.house_seats.get(code).copied().unwrap_or(0);
-            if let Some(f) = feed_of(code).filter(|f| !f.house.is_empty() && total > 0) {
+            let official = feed_of(code).filter(|f| !f.house.is_empty() && total > 0);
+            if official.is_none() {
+                if let Some(&(d, r)) = proj.and_then(|p| p.house.get(code)) {
+                    if total > 0 {
+                        let parts = [(d, "#3B6FE0"), (r, "#D8453F"), (total.saturating_sub(d + r), "#3A3A40")];
+                        let _ = write!(o, "<linearGradient id=\"g-{code}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">");
+                        let mut acc = 0u32;
+                        for (n, col) in parts {
+                            if n == 0 {
+                                continue;
+                            }
+                            let a = acc as f64 * 100.0 / total as f64;
+                            acc += n;
+                            let b = acc as f64 * 100.0 / total as f64;
+                            let _ = write!(o, "<stop offset=\"{a:.2}%\" stop-color=\"{col}\"/><stop offset=\"{b:.2}%\" stop-color=\"{col}\"/>");
+                        }
+                        o.push_str("</linearGradient>");
+                    }
+                }
+            }
+            if let Some(f) = official {
                 let mut t = Tally::default();
                 for c in &f.house {
                     t.add(c.lead());
@@ -186,6 +207,25 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], view: View) -> String {
             View::Senate => {
                 if !reference.in_senate_schedule(code) {
                     ("off", format!("{}: tidak ada pemilihan Senat", s.name))
+                } else if let Some(pp) = proj.and_then(|p| p.senate.get(code)) {
+                    let off = feed_of(code).and_then(|f| f.senate.as_ref()).map(|c| c.lead());
+                    let conflict = matches!(off, Some(Lead::Ahead(q)) if q != *pp);
+                    (
+                        match (pp, conflict) {
+                            (Party::Dem, false) => "pd",
+                            (Party::Rep, false) => "pr",
+                            (Party::Other, false) => "po",
+                            (Party::Dem, true) => "pd conflict",
+                            (Party::Rep, true) => "pr conflict",
+                            (Party::Other, true) => "po conflict",
+                        },
+                        format!(
+                            "{}: {} proyeksi menang (kompilasi media di Wikipedia){}",
+                            s.name,
+                            pp.label(),
+                            if conflict { ". Hitungan resmi sementara menunjukkan pemimpin berbeda" } else { "" }
+                        ),
+                    )
                 } else if let Some(c) = feed_of(code).and_then(|f| f.senate.as_ref()) {
                     let cls = match c.lead() {
                         Lead::Ahead(p) => pcls(p),
@@ -216,7 +256,13 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], view: View) -> String {
                         ),
                     )
                 }
-                _ => ("none", format!("{}: data belum tersedia dari sumber resmi yang tersambung", s.name)),
+                _ => match proj.and_then(|p| p.house.get(code)) {
+                    Some(&(d, r)) => (
+                        "band",
+                        format!("{}: proyeksi menang (kompilasi media di Wikipedia): Demokrat {}, Republik {} dari {} kursi", s.name, d, r, reference.house_seats.get(code).copied().unwrap_or(0)),
+                    ),
+                    None => ("none", format!("{}: data belum tersedia", s.name)),
+                },
             },
         };
         let fill = if cls == "band" { format!(" style=\"fill:url(#g-{code})\"") } else { String::new() };
@@ -227,7 +273,10 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], view: View) -> String {
         let _ = write!(o, "<text class=\"lb{}\" x=\"{}\" y=\"{}\">{}</text>", if off { " off" } else { "" }, s.cx, s.cy + 3.5, code);
         if view == View::House {
             let total = reference.house_seats.get(code).copied().unwrap_or(0);
-            let have = feed_of(code).map(|f| f.house.len()).unwrap_or(0);
+            let have = match feed_of(code).filter(|f| !f.house.is_empty()) {
+                Some(f) => f.house.len(),
+                None => proj.and_then(|p| p.house.get(code)).map(|&(d, r)| (d + r) as usize).unwrap_or(0),
+            };
             let _ = write!(o, "<text class=\"lb2\" x=\"{}\" y=\"{}\">{}/{}</text>", s.cx, s.cy + 13.5, have, total);
         }
     }
@@ -246,10 +295,13 @@ fn seat_bar(segments: &[(&str, u32)], total: u32) -> String {
     o
 }
 
-pub fn page(reference: &Reference, feeds: &[FeedResult], view: View, now: DateTime<Utc>) -> String {
+pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, view: View, now: DateTime<Utc>) -> String {
+    let proj: Option<&Projection> = match projr {
+        ProjResult::Ok(p) => Some(p),
+        ProjResult::Failed(_) => None,
+    };
     let senate_total = reference.senate.len() as u32;
     let house_total = reference.house_total();
-    let st = senate_tally(feeds);
     let ht = house_tally(feeds);
     let ok: Vec<&StateFeed> = feeds_ok(feeds).collect();
     let connected = ok.iter().map(|f| f.state.as_str()).collect::<Vec<_>>().join(", ");
@@ -271,7 +323,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], view: View, now: DateTi
         wib(now)
     );
     let title = if view == View::Senate { "Hasil Senat AS" } else { "Hasil DPR AS" };
-    let _ = write!(o, "<h1>{title}</h1><p class=\"sub\">Pemilu sela AS, 3 November 2026. Hitungan sementara dari situs hasil resmi negara bagian, belum disertifikasi.</p>");
+    let _ = write!(o, "<h1>{title}</h1><p class=\"sub\">Pemilu sela AS, 3 November 2026. Hitungan sementara dari situs hasil resmi negara bagian, ditambah proyeksi menang dari kompilasi media. Keduanya belum resmi dan ditandai terpisah.</p>");
     let _ = write!(
         o,
         "<nav class=\"tabs\"><a href=\"/?view=senat\" class=\"{}\">Senat</a><a href=\"/?view=dpr\" class=\"{}\">DPR</a></nav>",
@@ -280,7 +332,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], view: View, now: DateTi
     );
 
     o.push_str("<div class=\"grid\"><section class=\"mapcol\">");
-    o.push_str(&map_svg(reference, feeds, view));
+    o.push_str(&map_svg(reference, feeds, proj, view));
     // legend
     o.push_str("<ul class=\"legend\">");
     if view == View::Senate {
@@ -294,34 +346,81 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], view: View, now: DateTi
         o.push_str("<li><i class=\"sw none\"></i>Data belum tersedia dari sumber yang tersambung</li>");
         o.push_str("<li class=\"mute\">n/total: kursi yang sudah ada data / jumlah kursi negara bagian</li>");
     }
-    o.push_str("<li class=\"mute\">Proyeksi menang: belum ada sumber proyeksi yang tersambung, jadi tidak ditampilkan.</li></ul></section>");
+    if proj.is_some() {
+        if view == View::Senate {
+            o.push_str("<li><i class=\"sw pd\"></i><i class=\"sw pr\"></i><i class=\"sw po\"></i>Proyeksi menang: kompilasi laporan media (lewat Wikipedia), bukan hitungan resmi</li>");
+            o.push_str("<li><i class=\"sw d lead conflict\"></i>Garis putus-putus putih: hitungan resmi sementara menunjuk pemimpin berbeda dari proyeksi</li>");
+        } else {
+            o.push_str("<li><i class=\"sw pd\"></i><i class=\"sw pr\"></i>Pita warna terang = kursi yang sudah diproyeksikan menang (Wikipedia). Pita gelap = unggul sementara dari hitungan resmi. Negara bagian dengan hitungan resmi memakai pita gelap.</li>");
+        }
+    } else {
+        o.push_str("<li class=\"mute\">Proyeksi menang: sumber proyeksi gagal dibaca saat ini, jadi tidak ditampilkan.</li>");
+    }
+    o.push_str("</ul></section>");
 
     // side panel
     o.push_str("<aside class=\"panel\">");
+    // per-state precedence: projection first, then official lead, then nothing
+    let (mut pj, mut ol, mut nod) = (Tally::default(), Tally::default(), 0u32);
+    let (mut hp_d, mut hp_r, mut hp_states, mut h_proj_seats) = (0u32, 0u32, 0u32, 0u32);
     if view == View::Senate {
-        let _ = write!(o, "<div class=\"box\"><b>{} dari {} pemilihan kursi Senat sudah ada data</b>", st.with_data(), senate_total);
-        let n = senate_total;
-        let nodata = n.saturating_sub(st.with_data());
-        o.push_str(&seat_bar(&[("d lead", st.dem), ("r lead", st.rep), ("o lead", st.other), ("tie", st.tie), ("none", st.novotes + nodata)], n));
+        for e in &reference.senate {
+            let off = ok.iter().find(|f| f.state == e.state).and_then(|f| f.senate.as_ref());
+            match (proj.and_then(|p| p.senate.get(&e.state)), off) {
+                (Some(p), _) => match p {
+                    Party::Dem => pj.dem += 1,
+                    Party::Rep => pj.rep += 1,
+                    Party::Other => pj.other += 1,
+                },
+                (None, Some(c)) => ol.add(c.lead()),
+                (None, None) => nod += 1,
+            }
+        }
+        let have = senate_total - nod;
+        let _ = write!(o, "<div class=\"box\"><b>{} dari {} pemilihan kursi Senat sudah ada proyeksi atau hitungan</b>", have, senate_total);
+        o.push_str(&seat_bar(
+            &[("pd", pj.dem), ("pr", pj.rep), ("po", pj.other), ("d lead", ol.dem), ("r lead", ol.rep), ("o lead", ol.other), ("tie", ol.tie), ("none", ol.novotes + nod)],
+            senate_total,
+        ));
+        let _ = write!(
+            o,
+            "<p class=\"stat\"><b>Proyeksi menang</b> <small class=\"mute\">(kompilasi media, Wikipedia)</small><br><span class=\"mute\">{}</span></p>",
+            if proj.is_some() { format!("Demokrat {} | Republik {} | Lainnya {}", pj.dem, pj.rep, pj.other) } else { "Tidak tersedia".to_string() }
+        );
+        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi, belum ada proyeksi)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ol.dem, ol.rep, ol.other, if ol.tie > 0 { format!(" | Imbang {}", ol.tie) } else { String::new() }, nod + ol.novotes);
     } else {
-        let _ = write!(o, "<div class=\"box\"><b>{} dari {} kursi DPR sudah ada data</b>", ht.with_data(), house_total);
-        let nodata = house_total.saturating_sub(ht.with_data());
-        o.push_str(&seat_bar(&[("d lead", ht.dem), ("r lead", ht.rep), ("o lead", ht.other), ("tie", ht.tie), ("none", ht.novotes + nodata)], house_total));
+        for (code, total) in &reference.house_seats {
+            let off = ok.iter().find(|f| &f.state == code && !f.house.is_empty());
+            if off.is_none() {
+                if let Some(&(d, r)) = proj.and_then(|p| p.house.get(code)) {
+                    hp_d += d;
+                    hp_r += r;
+                    hp_states += 1;
+                    h_proj_seats += (d + r).min(*total);
+                }
+            }
+        }
+        let have = ht.with_data() + h_proj_seats;
+        let _ = write!(o, "<div class=\"box\"><b>{} dari {} kursi DPR sudah ada proyeksi atau hitungan</b>", have, house_total);
+        let nodata = house_total.saturating_sub(have) + ht.novotes;
+        o.push_str(&seat_bar(&[("pd", hp_d), ("pr", hp_r), ("d lead", ht.dem), ("r lead", ht.rep), ("o lead", ht.other), ("tie", ht.tie), ("none", nodata)], house_total));
+        let _ = write!(
+            o,
+            "<p class=\"stat\"><b>Proyeksi menang</b> <small class=\"mute\">(kompilasi media, Wikipedia; {} negara bagian tanpa hitungan resmi di sini)</small><br><span class=\"mute\">{}</span></p>",
+            hp_states,
+            if proj.is_some() { format!("Demokrat {} | Republik {}", hp_d, hp_r) } else { "Tidak tersedia".to_string() }
+        );
+        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi, belum ada proyeksi)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ht.dem, ht.rep, ht.other, if ht.tie > 0 { format!(" | Imbang {}", ht.tie) } else { String::new() }, nodata);
     }
-    let t = if view == View::Senate { st } else { ht };
+    let chamber = if view == View::Senate { "Senat" } else { "DPR" };
+    let tot = proj.map(|p| if view == View::Senate { &p.senate_total } else { &p.house_total });
     let _ = write!(
         o,
-        "<p class=\"stat\"><b>Proyeksi menang</b><br><span class=\"mute\">Tidak tersedia</span></p><p class=\"stat\"><b>Unggul sementara</b><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>",
-        t.dem,
-        t.rep,
-        t.other,
-        if t.tie > 0 { format!(" | Imbang {}", t.tie) } else { String::new() },
-        if view == View::Senate { senate_total.saturating_sub(t.with_data()) } else { house_total.saturating_sub(t.with_data()) }
-    );
-    let _ = write!(
-        o,
-        "<div class=\"box dashed\"><b>{} dan total nasional: Tidak tersedia</b><br><span class=\"mute\">Hanya {} negara bagian yang tersambung ke sumber resmi ({}). Total nasional dan kendali kamar tidak dihitung dari data sebagian.</span></div>",
-        if view == View::Senate { "Kendali Senat" } else { "Kendali DPR" },
+        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">{}</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
+        match tot {
+            Some(ChamberTotals { dem: Some(d), rep: Some(r) }) => format!("Menurut Wikipedia (kompilasi laporan media, bukan hasil resmi): Demokrat {d}, Republik {r}. Angka ini mencakup kursi yang tidak diperebutkan tahun ini."),
+            _ => "Tidak tersedia: sumber proyeksi belum mencantumkan total.".to_string(),
+        },
         ok.len(),
         if connected.is_empty() { "belum ada".to_string() } else { connected }
     );
@@ -340,6 +439,15 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], view: View, now: DateTi
                     if kind == "special" { " <small class=\"mute\">(pemilihan khusus)</small>" } else { "" },
                     lead_text(c.lead())
                 );
+                if let Some(p) = proj.and_then(|p| p.senate.get(&f.state)) {
+                    let conflict = matches!(c.lead(), Lead::Ahead(q) if q != *p);
+                    let _ = write!(
+                        o,
+                        "<small class=\"mute\">Proyeksi menang (Wikipedia, dari media): {}.{}</small>",
+                        p.label(),
+                        if conflict { " Tidak sinkron dengan hitungan resmi sementara di bawah." } else { "" }
+                    );
+                }
                 for cand in &c.candidates {
                     o.push_str(&cand_line(cand));
                 }
@@ -412,11 +520,18 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], view: View, now: DateTi
     o.push_str("</aside></div><footer>");
     let _ = write!(
         o,
-        "<p>Sumber: situs hasil resmi kantor pemilu negara bagian (tautan di tiap baris). Semua angka berstatus belum resmi dan bisa berubah sampai disertifikasi.</p><p>Waktu sumber = waktu yang dicap penerbit pada berkas data. Waktu ambil = saat halaman ini dibuat: {}.{}</p><p>Jadwal kursi Senat: Ballotpedia. Jumlah kursi DPR: Sensus AS 2020. Situs ini tidak memberi proyeksi atau penetapan pemenang.</p>",
+        "<p>Sumber: situs hasil resmi kantor pemilu negara bagian (tautan di tiap baris). Semua angka berstatus belum resmi dan bisa berubah sampai disertifikasi.</p><p>Waktu sumber = waktu yang dicap penerbit pada berkas data. Waktu ambil = saat halaman ini dibuat: {}.{}</p><p>{}</p><p>Jadwal kursi Senat: Ballotpedia. Jumlah kursi DPR: Sensus AS 2020. Situs ini tidak membuat proyeksi sendiri dan tidak menetapkan pemenang.</p>",
         wib(now),
         match newest {
             Some(t) => format!(" Data sumber terbaru berstempel {}.", wib(t)),
             None => " Belum ada sumber yang berhasil dibaca.".into(),
+        },
+        match proj {
+            Some(p) => format!(
+                "Proyeksi menang: kompilasi sukarelawan di Wikipedia dari laporan media (CC BY-SA 4.0), disunting manual sehingga bisa terlambat atau keliru. Artikel Senat <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>, artikel DPR <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>. Revisi terbaru berstempel {} ({}). Jika proyeksi dan hitungan resmi berbeda, keduanya ditampilkan.",
+                SENATE_TITLE, p.senate_rev, p.senate_rev, HOUSE_TITLE, p.house_rev, p.house_rev, wib(p.revision_time), age(now, p.revision_time)
+            ),
+            None => format!("Proyeksi menang: sumber proyeksi gagal dibaca saat halaman ini dibuat{}.", match projr { ProjResult::Failed(e) => format!(" ({})", esc(e)), _ => String::new() }),
         }
     );
     o.push_str("</footer></div></body></html>");
@@ -442,7 +557,7 @@ fn source_note(f: &StateFeed, now: DateTime<Utc>, stale: bool) -> String {
     )
 }
 
-pub fn json(reference: &Reference, feeds: &[FeedResult], now: DateTime<Utc>) -> String {
+pub fn json(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, now: DateTime<Utc>) -> String {
     let sources: Vec<serde_json::Value> = feeds
         .iter()
         .map(|f| match f {
@@ -462,6 +577,17 @@ pub fn json(reference: &Reference, feeds: &[FeedResult], now: DateTime<Utc>) -> 
         "senate_contests_scheduled": reference.senate.len(),
         "house_seats_total": reference.house_total(),
         "sources": sources,
+        "projection": match projr {
+            ProjResult::Ok(p) => serde_json::json!({
+                "status": "ok", "origin": "Wikipedia (CC BY-SA 4.0), volunteer-compiled from media reports; not official",
+                "revision_time": p.revision_time, "senate_rev": p.senate_rev, "house_rev": p.house_rev,
+                "senate_projected_winner_party": p.senate.iter().map(|(k, v)| (k.clone(), v.label())).collect::<std::collections::BTreeMap<_, _>>(),
+                "house_seats_called": p.house.iter().map(|(k, v)| (k.clone(), serde_json::json!({"dem": v.0, "rep": v.1}))).collect::<std::collections::BTreeMap<_, _>>(),
+                "senate_total_after": {"dem": p.senate_total.dem, "rep": p.senate_total.rep},
+                "house_total_after": {"dem": p.house_total.dem, "rep": p.house_total.rep},
+            }),
+            ProjResult::Failed(e) => serde_json::json!({"status": "failed", "reason": e}),
+        },
     }))
     .unwrap_or_else(|_| "{}".into())
 }
@@ -487,6 +613,9 @@ h1{font-size:30px;line-height:1.1;margin:26px 0 6px;font-weight:700}
 .st.d{fill:#2A3F73;stroke:var(--blue);stroke-width:1.5}.st.r{fill:#6E2B2A;stroke:var(--red);stroke-width:1.5}
 .st.o{fill:#44335C;stroke:var(--purp);stroke-width:1.5}.st.tie{fill:#55524C;stroke:var(--ink);stroke-dasharray:4 2}
 .st.band{stroke:#8A8A92;stroke-width:1.2}
+.st.pd{fill:var(--blue)}.st.pr{fill:var(--red)}.st.po{fill:var(--purp)}.st.conflict{stroke:var(--ink);stroke-width:2;stroke-dasharray:4 2}
+.sw.pd{background:var(--blue)}.sw.pr{background:var(--red)}.sw.po{background:var(--purp)}
+.bar i.pd{background:var(--blue)}.bar i.pr{background:var(--red)}.bar i.po{background:var(--purp)}
 .lb{font:700 10.5px "Public Sans",sans-serif;fill:var(--mute);text-anchor:middle;pointer-events:none}.lb.off{fill:var(--dash)}
 .lb2{font:400 9px "Public Sans",sans-serif;fill:var(--mute);text-anchor:middle;pointer-events:none}
 .legend{list-style:none;padding:0;margin:14px 0 0;font-size:13px;display:grid;gap:6px}

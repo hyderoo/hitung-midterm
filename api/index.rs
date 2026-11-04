@@ -32,9 +32,9 @@ async fn handler(req: Request) -> Result<Response<ResponseBody>, Error> {
             .body(ResponseBody::from(String::new()))?);
     }
     let reference = Reference::load();
-    let feeds = load_all(&reference).await;
+    let (feeds, proj) = load_all(&reference).await;
     let now = chrono::Utc::now();
-    let any_failed = feeds.iter().any(|f| matches!(f, FeedResult::Failed { .. }));
+    let any_failed = feeds.iter().any(|f| matches!(f, FeedResult::Failed { .. })) || matches!(proj, hitung_midterm::projection::ProjResult::Failed(_));
     // Edge cache: the CDN refetches the sources at most about every 2 minutes
     // and may serve a stale copy while it revalidates. Failures are cached briefly.
     let cache = if any_failed {
@@ -43,13 +43,13 @@ async fn handler(req: Request) -> Result<Response<ResponseBody>, Error> {
         "public, max-age=0, s-maxage=120, stale-while-revalidate=300"
     };
     let (ctype, body) = if param("format").as_deref() == Some("json") {
-        ("application/json; charset=utf-8", render::json(&reference, &feeds, now))
+        ("application/json; charset=utf-8", render::json(&reference, &feeds, &proj, now))
     } else {
         let view = match param("view").as_deref() {
             Some("dpr") => render::View::House,
             _ => render::View::Senate,
         };
-        ("text/html; charset=utf-8", render::page(&reference, &feeds, view, now))
+        ("text/html; charset=utf-8", render::page(&reference, &feeds, &proj, view, now))
     };
     Ok(Response::builder()
         .status(200)

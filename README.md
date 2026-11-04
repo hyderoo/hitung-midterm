@@ -2,7 +2,12 @@
 
 A live count page for the 3 November 2026 US midterm elections, written in Rust and deployed on Vercel. The UI is in Indonesian.
 
-It shows **unofficial vote counts read directly from official state result feeds**. It does not call races, project winners or total up control of the Senate or the House.
+It shows two clearly separated layers:
+
+1. **Official unofficial counts**: vote counts read directly from official state result feeds ("unggul sementara" = ahead on votes counted so far).
+2. **Projected winners**: race calls compiled by Wikipedia editors from news reports (CC BY-SA 4.0), read through the MediaWiki API with the revision id and timestamp shown on the page. This layer is volunteer-edited and can lag or be wrong. Where it disagrees with an official feed, the map and the state row say so.
+
+The site makes no projections of its own, and never infers chamber control. National totals are shown only as "according to Wikipedia".
 
 ## What it does
 
@@ -23,6 +28,7 @@ Connected so far: Virginia and Georgia (Senate and House). Coverage is derived a
 | House seats per state (total 435) | [US Census Bureau, 2020 apportionment, Table 1](https://www2.census.gov/programs-surveys/decennial/2020/data/apportionment/apportionment-2020-table01.pdf) |
 | Map geometry | [us-atlas](https://github.com/topojson/us-atlas) (Census cartographic boundaries) |
 | Vote counts | Virginia Department of Elections ENR, Georgia Secretary of State ENR |
+| Projected winners and national totals | Wikipedia articles on the 2026 Senate and House elections (CC BY-SA 4.0) |
 
 These files contain no election results. Results only ever come from the live feeds.
 
@@ -30,7 +36,7 @@ These files contain no election results. Results only ever come from the live fe
 
 `api/index.rs` is a Vercel Rust function. On each request it fetches the configured feeds concurrently, parses only the fields it needs with `serde`, and renders the page on the server (`src/render.rs`). `?format=json` returns the same data as JSON, `?view=dpr` selects the House view.
 
-The response is cached at the Vercel edge (`s-maxage=120`, `stale-while-revalidate=300`), so the state servers are hit at most about once every two minutes however many people visit. Failures are cached for 20 seconds only.
+The response is cached at the Vercel edge (`s-maxage=120`, `stale-while-revalidate=300`). Inside a function instance, each source has a lock (single flight), a 90 second minimum between origin requests, and conditional requests (`If-None-Match`, so an unchanged 48 MB file costs a 304). Query strings other than `view=senat|dpr` and `format=json` are redirected without fetching anything. This bounds load per warm instance; it is not a global guarantee, because separate instances or regions may each fetch once. A failed refresh serves the last good copy for at most 15 minutes, with a visible warning.
 
 ## Develop
 
@@ -45,7 +51,7 @@ The tests use a small synthetic fixture (`tests/fixtures/test_only_export.json`,
 ## Limits and caveats
 
 - Counts are unofficial until each state certifies. They can change or be corrected.
-- A vote lead is not a projection. There is no projection source connected, so "Proyeksi menang" is never shown.
+- A vote lead is not a projection. "Proyeksi menang" comes only from the Wikipedia layer and is labelled as such.
 - Precinct reporting comes from each feed's locality rows when present. Nothing is estimated.
 - State sites update on their own schedule. Georgia's file, for example, can be hours old; the page shows that age.
 - The Vercel Rust runtime is in beta.

@@ -65,9 +65,64 @@ fn page_without_data_never_shows_zero_totals_or_control() {
         human_url: "https://example.test".into(),
         reason: "boom".into(),
     }];
-    let html = page(&r, &failed, View::Senate, chrono::Utc::now());
-    assert!(html.contains("0 dari 35 pemilihan kursi Senat sudah ada data"));
+    let html = page(&r, &failed, &hitung_midterm::projection::ProjResult::Failed("x".into()), View::Senate, chrono::Utc::now());
+    assert!(html.contains("0 dari 35 pemilihan kursi Senat sudah ada proyeksi atau hitungan"));
     assert!(html.contains("Tidak tersedia"));
     assert!(html.contains("Gagal diperbarui"));
     assert!(!html.contains("dipanggil") && !html.contains("perlombaan"));
+}
+
+mod proj {
+    use hitung_midterm::{model::Party, projection::*};
+    use std::collections::BTreeMap;
+
+    fn names() -> BTreeMap<String, String> {
+        (0..50).map(|i| (format!("S{i}"), format!("C{i}"))).collect()
+    }
+    #[test]
+    fn senate_rows_and_calls() {
+        let mut wt = String::from("x\n== Race summary ==\n{|\n");
+        for i in 0..33 {
+            let win = if i == 0 {
+                ""
+            } else if i % 2 == 0 {
+                "{{Party stripe|Democratic Party (US)}}{{aye}} A"
+            } else {
+                "{{Party stripe|Republican Party (US)}}{{aye}} B"
+            };
+            wt += &format!("|-\n! [[2026 United States Senate election in S{i}|S{i}]]\n| {win}\n");
+        }
+        wt += "\n== Alabama ==\n";
+        let m = parse_senate(&wt, &names()).unwrap();
+        assert!(!m.contains_key("C0"), "an uncalled race must stay absent");
+        assert_eq!(m["C1"], Party::Rep);
+        assert_eq!(m["C2"], Party::Dem);
+        assert_eq!(m.len(), 32);
+    }
+    #[test]
+    fn senate_format_change_is_an_error() {
+        assert!(parse_senate("== Race summary ==\n== Alabama ==", &names()).is_err());
+    }
+    #[test]
+    fn house_rows_and_empty_states() {
+        let mut wt = String::from("Per state ===\n{|\n");
+        for i in 0..50 {
+            if i == 3 {
+                wt += &format!("|-\n![[#S{i}|S{i}]]\n|7\n| \n|\n|\n|\n");
+            } else {
+                wt += &format!("|-\n![[#S{i}|S{i}]]\n|7\n|{{{{party shading/Democratic}}}}|'''4'''\n|{{{{steady}}}}\n|3\n|{{{{steady}}}}\n");
+            }
+        }
+        wt += "\n|}";
+        let r = parse_house(&wt, &names()).unwrap();
+        assert_eq!(r["C0"], (4, 3));
+        assert!(!r.contains_key("C3"), "a state with empty cells has no data");
+        assert!(parse_house("Per state ===\n|}", &names()).is_err());
+    }
+    #[test]
+    fn totals() {
+        let t = parse_totals("| seats_after1 = '''52'''{{efn|x}}\n| seats_after2 = 43\n");
+        assert_eq!((t.dem, t.rep), (Some(52), Some(43)));
+        assert_eq!(parse_totals("| seats_after1 = \n").dem, None);
+    }
 }
