@@ -1,7 +1,8 @@
 {
  "election_date": "2026-11-03",
  "sources": [
-  "https://ballotpedia.org/United_States_Senate_elections%2C_2026"
+  "https://ballotpedia.org/United_States_Senate_elections%2C_2026",
+  "https://www.senate.gov/general/contact_information/senators_cfm.xml"
  ],
  "contests": [
   {
@@ -144,5 +145,6 @@
    "state": "WY",
    "kind": "regular"
   }
- ]
+ ],
+ "note": "33 regular contests = the 33 states of Class II (senate.gov, checked 2026-11-04); FL and OH are special elections (Ballotpedia)."
 }
