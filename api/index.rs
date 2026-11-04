@@ -34,7 +34,7 @@ async fn handler(req: Request) -> Result<Response<ResponseBody>, Error> {
     let reference = Reference::load();
     let (feeds, proj) = load_all(&reference).await;
     let now = chrono::Utc::now();
-    let any_failed = feeds.iter().any(|f| matches!(f, FeedResult::Failed { .. })) || matches!(proj, hitung_midterm::projection::ProjResult::Failed(_));
+    let any_failed = feeds.iter().any(|f| matches!(f, FeedResult::Failed { .. })) || matches!(&proj, hitung_midterm::projection::ProjResult::Failed(e) if e != "off");
     // Edge cache: the CDN refetches the sources at most about every 2 minutes
     // and may serve a stale copy while it revalidates. Failures are cached briefly.
     let cache = if any_failed {

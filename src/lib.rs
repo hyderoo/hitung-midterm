@@ -20,7 +20,13 @@ pub async fn load_all(reference: &Reference) -> (Vec<FeedResult>, projection::Pr
     let proj_task = {
         let client = client.clone();
         let names = names.clone();
-        tokio::spawn(async move { projection::fetch(&client, &names).await })
+        tokio::spawn(async move {
+            if std::env::var("WIKI_UNVERIFIED").ok().as_deref() == Some("1") {
+                projection::fetch(&client, &names).await
+            } else {
+                projection::ProjResult::Failed("off".into())
+            }
+        })
     };
     let tasks: Vec<_> = reference
         .sources

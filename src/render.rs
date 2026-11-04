@@ -323,7 +323,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         wib(now)
     );
     let title = if view == View::Senate { "Hasil Senat AS" } else { "Hasil DPR AS" };
-    let _ = write!(o, "<h1>{title}</h1><p class=\"sub\">Pemilu sela AS, 3 November 2026. Hitungan sementara dari situs hasil resmi negara bagian, ditambah entri pemenang dari Wikipedia yang belum diverifikasi. Keduanya belum resmi dan ditandai terpisah.</p>");
+    let _ = write!(o, "<h1>{title}</h1><p class=\"sub\">Pemilu sela AS, 3 November 2026. Hitungan sementara dari situs hasil resmi negara bagian. Keduanya belum resmi dan ditandai terpisah.</p>");
     let _ = write!(
         o,
         "<nav class=\"tabs\"><a href=\"/?view=senat\" class=\"{}\">Senat</a><a href=\"/?view=dpr\" class=\"{}\">DPR</a></nav>",
@@ -526,6 +526,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
                 "Entri pemenang di Wikipedia: ditulis sukarelawan (CC BY-SA 4.0), belum diverifikasi ke laporan media per pemilihan, disunting manual sehingga bisa terlambat atau keliru. Artikel Senat <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>, artikel DPR <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>. Artikel terakhir disunting {} ({}). Itu waktu penyuntingan di Wikipedia, bukan waktu data hasil, dan tiap hasil belum kami telusuri ke kutipan medianya. Jika proyeksi dan hitungan resmi berbeda, keduanya ditampilkan.",
                 SENATE_TITLE, p.senate_rev, p.senate_rev, HOUSE_TITLE, p.house_rev, p.house_rev, wib(p.revision_time), age(now, p.revision_time)
             ),
+            None if matches!(projr, ProjResult::Failed(e) if e == "off") => "Tidak ada penanda pemenang atau total kamar: situs ini hanya menampilkan hitungan dari sumber resmi negara bagian yang sudah tersambung.".to_string(),
             None => format!("Entri Wikipedia: sumber gagal dibaca saat halaman ini dibuat{}.", match projr { ProjResult::Failed(e) => format!(" ({})", esc(e)), _ => String::new() }),
         }
     );
