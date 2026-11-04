@@ -246,6 +246,52 @@ pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> R
     Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate, house, refresh_note: None })
 }
 
+/// Oregon SOS results pages (HTML). The page states "Results last updated:
+/// M/D/YYYY | H:MM AM PT"; the election is after the November DST change, so
+/// PT is PST (UTC-8). The page's own precinct counter is not used (it reads
+/// 0 of N although votes are counted; Oregon votes by mail).
+pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
+    use chrono::{NaiveDateTime, TimeZone, FixedOffset};
+    let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let ts = Regex::new(r"Results last updated:\s*(\d+/\d+/\d{4})\s*\|\s*(\d+:\d{2} [AP]M) PT").map_err(|e| e.to_string())?;
+    let c = ts.captures(html).ok_or("halaman tidak mencantumkan waktu pembaruan")?;
+    let naive = NaiveDateTime::parse_from_str(&format!("{} {}", &c[1], &c[2]), "%m/%d/%Y %I:%M %p").map_err(|e| e.to_string())?;
+    let source_time = FixedOffset::west_opt(8 * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
+    let head = Regex::new(r"<h1>(US [^<]*)</h1>").map_err(|e| e.to_string())?;
+    let cand = Regex::new(r#"(?s)<h1>([^<]*)</h1>\s*<h2 class="[^"]*">([^<]*)</h2>.*?<div class="col display-results-box-f">\s*<div>([\d,]+)</div>"#).map_err(|e| e.to_string())?;
+    let heads: Vec<(usize, usize, String)> = head.captures_iter(html).map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end(), c[1].trim().to_string())).collect();
+    if heads.is_empty() {
+        return Err("format halaman tidak dikenali: tidak ada kontes".into());
+    }
+    let mut senate = None;
+    let mut house = Vec::new();
+    for (i, (_, end, name)) in heads.iter().enumerate() {
+        let stop = heads.get(i + 1).map(|h| h.0).unwrap_or(html.len());
+        let seg = &html[*end..stop];
+        let is_sen = cfg.senate_exact.iter().any(|n| n == name);
+        let dist = re.captures(name).and_then(|c| c[1].parse::<u32>().ok());
+        if !is_sen && dist.is_none() {
+            continue;
+        }
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for r in cand.captures_iter(seg) {
+            let v: u64 = r[3].replace(',', "").parse().map_err(|_| format!("angka suara tidak valid di {name}"))?;
+            let party_txt = r[2].split(',').next().unwrap_or("").trim().to_string();
+            if r[1].trim().eq_ignore_ascii_case("write-in") {
+                write_in += v;
+            } else {
+                candidates.push(Candidate { name: clean_name(&r[1]), party: Party::classify(Some(&party_txt)), votes: v });
+            }
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        let ct = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts: None, polling_pct: None };
+        if is_sen { senate = Some(ct); } else { house.push(ct); }
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate, house, refresh_note: None })
+}
+
 /// Per-source cache kept in the warm function instance. The source files are
 /// large (27-48 MB), so one lock per source gives single-flight refreshes, a
 /// minimum interval between origin requests, and conditional requests
@@ -304,7 +350,9 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
             .map(|d| d.with_timezone(&Utc));
         let bytes = resp.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
-        let feed = if cfg.format == "txsos" {
+        let feed = if cfg.format == "orsos" {
+            parse_orsos(&String::from_utf8_lossy(&bytes), cfg)?
+        } else if cfg.format == "txsos" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
             parse_txsos(&String::from_utf8_lossy(&bytes), cfg, t)?
         } else if cfg.format == "ncsbe" {

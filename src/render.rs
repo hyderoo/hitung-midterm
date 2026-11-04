@@ -141,7 +141,7 @@ pub fn is_partial(c: &Contest) -> bool {
     match (c.precincts, c.polling_pct) {
         (Some((r, p)), _) => r < p,
         (None, Some(p)) => p < 100,
-        _ => false,
+        _ => true, // reporting status unknown: never presented as complete,
     }
 }
 

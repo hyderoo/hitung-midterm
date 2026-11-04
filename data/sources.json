@@ -49,6 +49,17 @@
       ],
       "house_regex": "^U\\. S\\. REPRESENTATIVE DISTRICT (\\d+)$",
       "format": "txsos"
+    },
+    {
+      "state": "OR",
+      "label": "Oregon Secretary of State (hasil sementara)",
+      "human_url": "https://results.oregonvotes.gov/resultsSW.aspx?type=FED&map=CTY",
+      "export_url": "https://results.oregonvotes.gov/resultsSW.aspx?type=FED&map=CTY",
+      "senate_exact": [
+        "US Senator"
+      ],
+      "house_regex": "^US Representative, (\\d+)(?:st|nd|rd|th) District$",
+      "format": "orsos"
     }
   ]
 }

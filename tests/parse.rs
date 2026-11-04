@@ -190,3 +190,23 @@ fn txsos_zero_votes_partial_and_ties() {
     let old = now - chrono::Duration::minutes(178);
     assert!(age(now, old).contains("2 jam 58 menit"), "{}", age(now, old));
 }
+
+#[test]
+fn orsos_html_rows_and_time() {
+    use hitung_midterm::{config::SourceCfg, feed::parse_orsos, model::Party, render::is_partial};
+    let cfg = SourceCfg { state: "OR".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US Senator".into()], house_regex: r"^US Representative, (\d+)(?:st|nd|rd|th) District$".into(), format: "orsos".into() };
+    let cand = |n: &str, p: &str, v: &str| format!(r#"<div class="col display-results-box-d"><h1>{n}</h1><h2 class="X">{p}</h2></div><div class="col display-results-box-f"> <div>{v}</div></div>"#);
+    let html = format!(r#"<div class="next-count">Results last updated: 11/4/2026 | 12:45 AM PT</div><h1>US Senator</h1>{}{}{}<h1>US Representative, 2nd District</h1>{}<h1>State Senator</h1>{}"#,
+        cand("A", "Republican", "600,760"), cand("B", "Democrat, Working Families", "845,830"), cand("Write-in", "", "1,106"),
+        cand("C", "Republican", "5"), cand("Z", "Democrat", "9"));
+    let f = parse_orsos(&html, &cfg).unwrap();
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].party, Party::Dem);
+    assert_eq!(s.candidates[0].votes, 845830);
+    assert_eq!(s.write_in, 1106);
+    assert_eq!(f.house.len(), 1);
+    assert_eq!(f.house[0].district, Some(2));
+    assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T08:45:00+00:00");
+    assert!(is_partial(&s), "unknown reporting status must not read as complete");
+    assert!(parse_orsos("<html></html>", &cfg).is_err());
+}
