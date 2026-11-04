@@ -251,14 +251,17 @@ pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> R
 /// PT is PST (UTC-8). The page's own precinct counter is not used (it reads
 /// 0 of N although votes are counted; Oregon votes by mail).
 pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
-    use chrono::{NaiveDateTime, TimeZone, FixedOffset};
+    use chrono::{FixedOffset, NaiveDateTime, TimeZone};
     let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
-    let ts = Regex::new(r"Results last updated:\s*(\d+/\d+/\d{4})\s*\|\s*(\d+:\d{2} [AP]M) PT").map_err(|e| e.to_string())?;
+    let ts = Regex::new(r"Results last updated:\s*(\d+/\d+/\d{4})\s*\|?\s*(\d+:\d{2} [AP]M) (PT|MT|CT|ET)").map_err(|e| e.to_string())?;
     let c = ts.captures(html).ok_or("halaman tidak mencantumkan waktu pembaruan")?;
     let naive = NaiveDateTime::parse_from_str(&format!("{} {}", &c[1], &c[2]), "%m/%d/%Y %I:%M %p").map_err(|e| e.to_string())?;
-    let source_time = FixedOffset::west_opt(8 * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
-    let head = Regex::new(r"<h1>(US [^<]*)</h1>").map_err(|e| e.to_string())?;
-    let cand = Regex::new(r#"(?s)<h1>([^<]*)</h1>\s*<h2 class="[^"]*">([^<]*)</h2>.*?<div class="col display-results-box-f">\s*<div>([\d,]+)</div>"#).map_err(|e| e.to_string())?;
+    // US standard time offsets (valid after the Nov 1 2026 DST change).
+    let hours = match &c[3] { "PT" => 8, "MT" => 7, "CT" => 6, _ => 5 };
+    let source_time = FixedOffset::west_opt(hours * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
+    let head = Regex::new(r"<h1>((?:US|United States) [^<]*)</h1>").map_err(|e| e.to_string())?;
+    let cand = Regex::new(r#"(?s)<h1>([^<]*)</h1>\s*<h2 class="[^"]*">([^<]*)</h2>.*?<div class="col display-results-box-f">\s*<(?:div|h1)>([\d,]+)</(?:div|h1)>"#).map_err(|e| e.to_string())?;
+    let prec = Regex::new(r"Precincts Fully:\s*(\d+)\s*/\s*(\d+)").map_err(|e| e.to_string())?;
     let heads: Vec<(usize, usize, String)> = head.captures_iter(html).map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end(), c[1].trim().to_string())).collect();
     if heads.is_empty() {
         return Err("format halaman tidak dikenali: tidak ada kontes".into());
@@ -273,6 +276,7 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
         if !is_sen && dist.is_none() {
             continue;
         }
+        let precincts = prec.captures(seg).and_then(|c| Some((c[1].parse::<u32>().ok()?, c[2].parse::<u32>().ok()?)));
         let mut candidates = Vec::new();
         let mut write_in = 0u64;
         for r in cand.captures_iter(seg) {
@@ -285,7 +289,7 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
             }
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
-        let ct = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts: None, polling_pct: None };
+        let ct = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts, polling_pct: None };
         if is_sen { senate = Some(ct); } else { house.push(ct); }
     }
     house.sort_by_key(|c| c.district);

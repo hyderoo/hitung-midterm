@@ -96,6 +96,17 @@
         "United States Senator"
       ],
       "house_regex": "^United States Representative District (\\d+)$"
+    },
+    {
+      "state": "NM",
+      "label": "New Mexico Secretary of State (hasil sementara)",
+      "human_url": "https://electionresults.sos.nm.gov/resultsSW.aspx?type=FED&map=CTY",
+      "export_url": "https://electionresults.sos.nm.gov/resultsSW.aspx?type=FED&map=CTY",
+      "senate_exact": [
+        "United States Senator"
+      ],
+      "house_regex": "^United States Representative DISTRICT (\\d+)$",
+      "format": "orsos"
     }
   ]
 }
