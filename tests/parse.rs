@@ -425,3 +425,15 @@ fn sc_picks_latest_snapshot_link() {
 <a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-1135PM-General-Election-Reports.xlsx">not-results</a>"#;
     assert_eq!(scxlsx_pick_link(html).unwrap(), "https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-12AM-General-Election-Results.xlsx");
 }
+
+
+#[test]
+fn sc_does_not_double_bump_next_morning_am_file() {
+    // A file dated the next morning is already past the election-night
+    // rollover; it must not be pushed another 24h ahead of a same-day PM file.
+    let html = r#"<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-1130PM-General-Election-Results.xlsx">night</a>
+<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-12AM-General-Election-Results.xlsx">midnight</a>
+<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-04-8AM-General-Election-Results.xlsx">morning</a>
+<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-04-2PM-General-Election-Results.xlsx">afternoon</a>"#;
+    assert_eq!(scxlsx_pick_link(html).unwrap(), "https://scvotes.gov/wp-content/uploads/2026/11/2026-11-04-2PM-General-Election-Results.xlsx");
+}

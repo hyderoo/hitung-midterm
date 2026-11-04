@@ -743,7 +743,8 @@ pub fn scxlsx_feed(xlsx: &[u8], cfg: &SourceCfg, lm: DateTime<Utc>) -> Result<St
 /// Last-Modified (a few minutes around the label time) is the source time.
 pub fn scxlsx_pick_link(html: &str) -> Option<String> {
     let link_re = Regex::new(r#"href="(https://scvotes\.gov/[^"]*?(\d{4})-(\d{2})-(\d{2})-([0-9-]+?)(AM|PM)-General-Election-Results\.xlsx)""#).ok()?;
-    let mut best: Option<(u64, String)> = None;
+    // Collect every snapshot: url, day key (yyyymmdd), minutes-of-day, am/pm.
+    let mut entries: Vec<(String, u64, u64, bool)> = Vec::new();
     for c in link_re.captures_iter(html) {
         let url = c[1].to_string();
         let digits: String = c[5].chars().filter(|ch| ch.is_ascii_digit()).collect();
@@ -753,8 +754,21 @@ pub fn scxlsx_pick_link(html: &str) -> Option<String> {
             _ => (digits[..2].parse::<u64>().unwrap_or(0), digits[2..].parse::<u64>().unwrap_or(0)),
         };
         let h24 = if &c[6] == "PM" && hh != 12 { hh + 12 } else if &c[6] == "AM" && hh == 12 { 0 } else { hh };
-        let minutes = if &c[6] == "AM" { (h24 + 24) * 60 + mm } else { h24 * 60 + mm };
         let day: u64 = c[2].parse().unwrap_or(0) * 10000 + c[3].parse().unwrap_or(0) * 100 + c[4].parse().unwrap_or(0);
+        entries.push((url, day, h24 * 60 + mm, &c[6] == "AM"));
+    }
+    // Election-night snapshots are dated for election day but AM labels belong
+    // just past midnight. Roll an AM label to the next day only when its date
+    // also carries late-evening (>= 6PM) snapshots, the midnight-rollover
+    // pattern; a next-morning file dated the next day must not be bumped.
+    let pm_late_days: std::collections::HashSet<u64> = entries
+        .iter()
+        .filter(|(_, _, m, am)| !am && *m >= 18 * 60)
+        .map(|(_, d, _, _)| *d)
+        .collect();
+    let mut best: Option<(u64, String)> = None;
+    for (url, day, minutes, am) in entries {
+        let minutes = if am && pm_late_days.contains(&day) { minutes + 24 * 60 } else { minutes };
         let key = day * 100000 + minutes;
         if best.as_ref().map(|(k, _)| key > *k).unwrap_or(true) {
             best = Some((key, url));
