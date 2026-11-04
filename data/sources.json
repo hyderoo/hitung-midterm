@@ -38,6 +38,17 @@
       ],
       "house_regex": "^US HOUSE OF REPRESENTATIVES DISTRICT (\\d+)\\s*\\(VOTE FOR 1\\)$",
       "format": "ncsbe"
+    },
+    {
+      "state": "TX",
+      "label": "Texas Secretary of State (hasil malam pemilu)",
+      "human_url": "https://electionresults.sos.state.tx.us/results.html",
+      "export_url": "https://electionresults.sos.state.tx.us/results.html",
+      "senate_exact": [
+        "U. S. SENATOR"
+      ],
+      "house_regex": "^U\\. S\\. REPRESENTATIVE DISTRICT (\\d+)$",
+      "format": "txsos"
     }
   ]
 }

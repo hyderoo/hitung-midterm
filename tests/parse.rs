@@ -145,3 +145,20 @@ fn ncsbe_statewide_rows() {
     assert_eq!(f.house[0].district, Some(2));
     assert_eq!(f.house[0].write_in, 2);
 }
+
+#[test]
+fn txsos_html_rows() {
+    use hitung_midterm::{config::SourceCfg, feed::parse_txsos, model::Party};
+    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into() };
+    let tr = |p: &str, c: &str, v: &str| format!(r#"<tr><td class="party">{p}</td><td class="candidate">{c}</td><td class="ballot">{v}</td></tr>"#);
+    let html = format!(r#"<div class="election">U. S. SENATOR </div><table>{}{}{}</table><div class="election">U. S. REPRESENTATIVE DISTRICT 1</div><table>{}</table><div class="election">STATE SENATOR DISTRICT 1</div><table>{}</table>"#,
+        tr("REPUBLICAN", "A", "1,000"), tr("DEMOCRATIC", "B", "2,000"), tr("WRITE-IN", "W", "5"),
+        tr("REPUBLICAN", "C (I)", "7"), tr("DEMOCRATIC", "Z", "99"));
+    let f = parse_txsos(&html, &cfg, chrono::Utc::now()).unwrap();
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].party, Party::Dem);
+    assert_eq!(s.candidates[0].votes, 2000);
+    assert_eq!(s.write_in, 5);
+    assert_eq!(f.house.len(), 1);
+    assert!(parse_txsos("<html>404</html>", &cfg, chrono::Utc::now()).is_err());
+}

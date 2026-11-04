@@ -201,6 +201,49 @@ pub fn parse_ncsbe(bytes: &[u8], cfg: &SourceCfg, source_time: DateTime<Utc>) ->
     })
 }
 
+/// Texas Secretary of State results page (static HTML, one table per contest).
+/// The page states its own "Updated" time in local time, but the HTTP
+/// Last-Modified header is used as the source time (they agree).
+pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> Result<StateFeed, String> {
+    let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let row = Regex::new(r#"<td class="party">([^<]*)</td><td class="candidate">([^<]*)</td><td class="ballot">([^<]*)</td>"#).map_err(|e| e.to_string())?;
+    let head = Regex::new(r#"<div class="election">([^<]*)</div>"#).map_err(|e| e.to_string())?;
+    let heads: Vec<(usize, usize, String)> = head.captures_iter(html).map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end(), c[1].trim().to_string())).collect();
+    if heads.is_empty() {
+        return Err("format halaman tidak dikenali: tidak ada kontes".into());
+    }
+    let mut senate = None;
+    let mut house = Vec::new();
+    for (i, (_, end, name)) in heads.iter().enumerate() {
+        let stop = heads.get(i + 1).map(|h| h.0).unwrap_or(html.len());
+        let seg = &html[*end..stop];
+        let is_sen = cfg.senate_exact.iter().any(|n| n == name);
+        let dist = re.captures(name).and_then(|c| c[1].parse::<u32>().ok());
+        if !is_sen && dist.is_none() {
+            continue;
+        }
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for r in row.captures_iter(seg) {
+            let v: u64 = r[3].trim().replace(',', "").parse().map_err(|_| format!("angka suara tidak valid di {name}"))?;
+            if r[1].trim().eq_ignore_ascii_case("write-in") {
+                write_in += v;
+            } else {
+                candidates.push(Candidate { name: clean_name(&r[2]), party: Party::classify(Some(r[1].trim())), votes: v });
+            }
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        let c = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts: None };
+        if is_sen {
+            senate = Some(c);
+        } else {
+            house.push(c);
+        }
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate, house, refresh_note: None })
+}
+
 /// Per-source cache kept in the warm function instance. The source files are
 /// large (27-48 MB), so one lock per source gives single-flight refreshes, a
 /// minimum interval between origin requests, and conditional requests
@@ -259,7 +302,10 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
             .map(|d| d.with_timezone(&Utc));
         let bytes = resp.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
-        let feed = if cfg.format == "ncsbe" {
+        let feed = if cfg.format == "txsos" {
+            let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
+            parse_txsos(&String::from_utf8_lossy(&bytes), cfg, t)?
+        } else if cfg.format == "ncsbe" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
             parse_ncsbe(&bytes, cfg, t)?
         } else {
