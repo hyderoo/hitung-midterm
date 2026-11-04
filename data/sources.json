@@ -69,6 +69,14 @@
       "senate_exact": [],
       "house_regex": "",
       "format": "mdsbe"
+    },
+    {
+      "state": "UT",
+      "label": "Utah Lieutenant Governor's Office (hasil sementara)",
+      "human_url": "https://electionresults.utah.gov/results/public/utah/elections/General11032026",
+      "export_url": "https://electionresults.utah.gov/cdn/results/Utah/export-General11032026.json",
+      "senate_exact": [],
+      "house_regex": "^U\\.S\\. House District (\\d+)$"
     }
   ]
 }
