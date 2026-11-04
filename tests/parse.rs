@@ -416,3 +416,12 @@ fn sc_xlsx_real_file() {
     assert_eq!(f.house.len(), 7);
     assert_eq!(f.house[0].district, Some(1));
 }
+
+#[test]
+fn sc_picks_latest_snapshot_link() {
+    let html = r#"<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-1130PM-General-Election-Results.xlsx">a</a>
+<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-12AM-General-Election-Results.xlsx">b</a>
+<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-955-PM-General-Election-Results.xlsx">c</a>
+<a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-1135PM-General-Election-Reports.xlsx">not-results</a>"#;
+    assert_eq!(scxlsx_pick_link(html).unwrap(), "https://scvotes.gov/wp-content/uploads/2026/11/2026-11-03-12AM-General-Election-Results.xlsx");
+}

@@ -82,3 +82,8 @@ links to the results host.
   the fetch concatenates pages before one parse.
 - Clarity pages wrap "Results last updated" in span tags (NM/SD/NE) or render
   it plain (OR); the parser tolerates both.
+- SC snapshot labels are nominal election-night publication times
+  ("2026-11-03-12AM" = just after midnight ET at the end of Nov 3). File
+  Last-Modified values sit within minutes of their labels (1130PM file
+  modified 23:23 ET; 12AM file modified 00:04 ET Nov 4). The xlsx
+  Last-Modified is the displayed source time; AM labels sort after PM.

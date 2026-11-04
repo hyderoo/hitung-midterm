@@ -736,25 +736,36 @@ pub fn scxlsx_feed(xlsx: &[u8], cfg: &SourceCfg, lm: DateTime<Utc>) -> Result<St
     Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time: lm, senate, house, refresh_note: None })
 }
 
-pub async fn parse_scxlsx(client: &reqwest::Client, html: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
-    let text = String::from_utf8_lossy(html);
-    let link_re = Regex::new(r#"href="(https://scvotes\.gov/[^"]*?(\d{4})-(\d{2})-(\d{2})-([0-9-]+)(AM|PM)-General-Election-Results\.xlsx)""#).map_err(|e| e.to_string())?;
-    let mut best: Option<(u32, String)> = None;
-    for c in link_re.captures_iter(&text) {
+/// Pick the freshest timestamped results snapshot link from the SC results
+/// page. Filenames carry nominal election-night publication times
+/// ("2026-11-03-1130PM-...", "2026-11-03-12AM-..."); AM times are after
+/// midnight, so they sort past the evening PM times. The file's own
+/// Last-Modified (a few minutes around the label time) is the source time.
+pub fn scxlsx_pick_link(html: &str) -> Option<String> {
+    let link_re = Regex::new(r#"href="(https://scvotes\.gov/[^"]*?(\d{4})-(\d{2})-(\d{2})-([0-9-]+?)(AM|PM)-General-Election-Results\.xlsx)""#).ok()?;
+    let mut best: Option<(u64, String)> = None;
+    for c in link_re.captures_iter(html) {
         let url = c[1].to_string();
         let digits: String = c[5].chars().filter(|ch| ch.is_ascii_digit()).collect();
         let (hh, mm) = match digits.len() {
-            1 | 2 => (digits.parse::<u32>().unwrap_or(0), 0),
-            3 => (digits[..1].parse::<u32>().unwrap_or(0), digits[1..].parse::<u32>().unwrap_or(0)),
-            _ => (digits[..2].parse::<u32>().unwrap_or(0), digits[2..].parse::<u32>().unwrap_or(0)),
+            1 | 2 => (digits.parse::<u64>().unwrap_or(0), 0),
+            3 => (digits[..1].parse::<u64>().unwrap_or(0), digits[1..].parse::<u64>().unwrap_or(0)),
+            _ => (digits[..2].parse::<u64>().unwrap_or(0), digits[2..].parse::<u64>().unwrap_or(0)),
         };
-        let h24 = (if &c[6] == "PM" && hh != 12 { hh + 12 } else if &c[6] == "AM" && hh == 12 { 0 } else { hh }) % 24;
-        let key = h24 * 60 + mm;
+        let h24 = if &c[6] == "PM" && hh != 12 { hh + 12 } else if &c[6] == "AM" && hh == 12 { 0 } else { hh };
+        let minutes = if &c[6] == "AM" { (h24 + 24) * 60 + mm } else { h24 * 60 + mm };
+        let day: u64 = c[2].parse().unwrap_or(0) * 10000 + c[3].parse().unwrap_or(0) * 100 + c[4].parse().unwrap_or(0);
+        let key = day * 100000 + minutes;
         if best.as_ref().map(|(k, _)| key > *k).unwrap_or(true) {
             best = Some((key, url));
         }
     }
-    let (_, url) = best.ok_or("tidak ada tautan hasil xlsx di halaman")?;
+    best.map(|(_, u)| u)
+}
+
+pub async fn parse_scxlsx(client: &reqwest::Client, html: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    let text = String::from_utf8_lossy(html);
+    let url = scxlsx_pick_link(&text).ok_or("tidak ada tautan hasil xlsx di halaman")?;
     let resp = client.get(&url).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
     if !resp.status().is_success() {
         return Err(format!("sumber membalas HTTP {}", resp.status().as_u16()));
