@@ -342,9 +342,9 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         o.push_str("<li><i class=\"sw off\"></i>Tidak ada pemilihan Senat (dari jadwal)</li>");
     } else {
         o.push_str("<li><i class=\"sw d lead\"></i><i class=\"sw r lead\"></i><i class=\"sw o lead\"></i>Pita warna = pembagian kursi yang unggul sementara, sebanding dengan jumlah kursi negara bagian</li>");
-        o.push_str("<li><i class=\"sw none\"></i>Abu-abu di dalam pita = kursi yang belum ada datanya</li>");
+        o.push_str("<li><i class=\"sw none\"></i>Abu-abu di dalam pita = kursi tanpa hitungan resmi dan tanpa proyeksi</li>");
         o.push_str("<li><i class=\"sw none\"></i>Data belum tersedia dari sumber yang tersambung</li>");
-        o.push_str("<li class=\"mute\">n/total: kursi yang sudah ada data / jumlah kursi negara bagian</li>");
+        o.push_str("<li class=\"mute\">n/total: kursi dengan hitungan resmi / jumlah kursi negara bagian (proyeksi tidak masuk n)</li>");
     }
     if proj.is_some() {
         if view == View::Senate {
@@ -413,14 +413,9 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi, belum ada proyeksi)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ht.dem, ht.rep, ht.other, if ht.tie > 0 { format!(" | Imbang {}", ht.tie) } else { String::new() }, nodata);
     }
     let chamber = if view == View::Senate { "Senat" } else { "DPR" };
-    let tot = proj.map(|p| if view == View::Senate { &p.senate_total } else { &p.house_total });
     let _ = write!(
         o,
-        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">{}</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
-        match tot {
-            Some(ChamberTotals { dem: Some(d), rep: Some(r) }) => format!("Menurut Wikipedia (kompilasi laporan media, bukan hasil resmi): Demokrat {d}, Republik {r}. Angka ini mencakup kursi yang tidak diperebutkan tahun ini."),
-            _ => "Tidak tersedia: sumber proyeksi belum mencantumkan total.".to_string(),
-        },
+        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Total kursi kamar bergantung pada cara menghitung senator independen yang bergabung dengan satu fraksi dan pada waktu pengambilan data, dan sumber yang kami pakai tidak mencantumkan kutipan per pemilihan. Angka di atas hanya jumlah pemilihan yang sudah ada proyeksi atau hitungan.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
         ok.len(),
         if connected.is_empty() { "belum ada".to_string() } else { connected }
     );
@@ -472,7 +467,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             .filter(|e| !ok.iter().any(|f| f.state == e.state && f.senate.is_some()))
             .map(|e| e.state.clone())
             .collect();
-        let _ = write!(o, "<details class=\"miss\"><summary>{} pemilihan lain belum ada datanya</summary><p class=\"mute\">{}</p></details>", missing.len(), missing.join(", "));
+        let _ = write!(o, "<details class=\"miss\"><summary>{} pemilihan lain belum ada hitungan resmi di sini</summary><p class=\"mute\">{}</p></details>", missing.len(), missing.join(", "));
     } else {
         o.push_str("<h2>Kursi DPR dengan data</h2><div class=\"rows\">");
         for f in &ok {
@@ -513,7 +508,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             .filter(|s| !ok.iter().any(|f| &f.state == *s && !f.house.is_empty()))
             .cloned()
             .collect();
-        let _ = write!(o, "<details class=\"miss\"><summary>{} negara bagian belum ada datanya</summary><p class=\"mute\">{}</p></details>", missing.len(), missing.join(", "));
+        let _ = write!(o, "<details class=\"miss\"><summary>{} negara bagian belum ada hitungan resmi di sini</summary><p class=\"mute\">{}</p></details>", missing.len(), missing.join(", "));
     }
 
     // footer
@@ -528,7 +523,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         },
         match proj {
             Some(p) => format!(
-                "Proyeksi menang: kompilasi sukarelawan di Wikipedia dari laporan media (CC BY-SA 4.0), disunting manual sehingga bisa terlambat atau keliru. Artikel Senat <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>, artikel DPR <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>. Revisi terbaru berstempel {} ({}). Jika proyeksi dan hitungan resmi berbeda, keduanya ditampilkan.",
+                "Proyeksi menang: kompilasi sukarelawan di Wikipedia dari laporan media (CC BY-SA 4.0), disunting manual sehingga bisa terlambat atau keliru. Artikel Senat <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>, artikel DPR <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>. Artikel terakhir disunting {} ({}). Itu waktu penyuntingan di Wikipedia, bukan waktu data hasil, dan tiap hasil belum kami telusuri ke kutipan medianya. Jika proyeksi dan hitungan resmi berbeda, keduanya ditampilkan.",
                 SENATE_TITLE, p.senate_rev, p.senate_rev, HOUSE_TITLE, p.house_rev, p.house_rev, wib(p.revision_time), age(now, p.revision_time)
             ),
             None => format!("Proyeksi menang: sumber proyeksi gagal dibaca saat halaman ini dibuat{}.", match projr { ProjResult::Failed(e) => format!(" ({})", esc(e)), _ => String::new() }),
@@ -583,8 +578,6 @@ pub fn json(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, now
                 "revision_time": p.revision_time, "senate_rev": p.senate_rev, "house_rev": p.house_rev,
                 "senate_projected_winner_party": p.senate.iter().map(|(k, v)| (k.clone(), v.label())).collect::<std::collections::BTreeMap<_, _>>(),
                 "house_seats_called": p.house.iter().map(|(k, v)| (k.clone(), serde_json::json!({"dem": v.0, "rep": v.1}))).collect::<std::collections::BTreeMap<_, _>>(),
-                "senate_total_after": {"dem": p.senate_total.dem, "rep": p.senate_total.rep},
-                "house_total_after": {"dem": p.house_total.dem, "rep": p.house_total.rep},
             }),
             ProjResult::Failed(e) => serde_json::json!({"status": "failed", "reason": e}),
         },
