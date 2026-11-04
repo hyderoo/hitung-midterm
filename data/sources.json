@@ -31,7 +31,7 @@
     {
       "state": "NC",
       "label": "North Carolina State Board of Elections (hasil statewide)",
-      "human_url": "https://er.ncsbe.gov/",
+      "human_url": "https://er.ncsbe.gov/?election_dt=11/03/2026&county_id=0&office=FED&contest=0",
       "export_url": "https://er.ncsbe.gov/enr/20261103/data/results_0.txt",
       "senate_exact": [
         "US SENATE (VOTE FOR 1)"
