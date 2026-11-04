@@ -2,7 +2,7 @@
 
 A live count page for the 3 November 2026 US midterm elections, written in Rust and deployed on Vercel. The UI is in Indonesian.
 
-It shows two clearly separated layers:
+It shows official counts. A second, optional layer (off by default, enabled only with the env var `WIKI_UNVERIFIED=1`) can add unverified Wikipedia winner entries; the production site does not use it. The two layers are:
 
 1. **Official unofficial counts**: vote counts read directly from official state result feeds ("unggul sementara" = ahead on votes counted so far).
 2. **Unverified Wikipedia entries**: winner entries compiled by Wikipedia editors from news reports (CC BY-SA 4.0), read through the MediaWiki API with the revision id and timestamp shown on the page. This layer is volunteer-edited and can lag or be wrong. Where it disagrees with an official feed, the map and the state row say so.
@@ -27,7 +27,7 @@ Connected so far: Virginia and Georgia (Senate and House). Coverage is derived a
 | Which states hold a Senate contest on 3 Nov 2026 (33 regular + 2 special: FL, OH) | [Ballotpedia](https://ballotpedia.org/United_States_Senate_elections%2C_2026); regular seats cross-checked against Class II senators on [senate.gov](https://www.senate.gov/general/contact_information/senators_cfm.xml) |
 | House seats per state (total 435) | [US Census Bureau, 2020 apportionment, Table 1](https://www2.census.gov/programs-surveys/decennial/2020/data/apportionment/apportionment-2020-table01.pdf) |
 | Map geometry | [us-atlas](https://github.com/topojson/us-atlas) (Census cartographic boundaries) |
-| Vote counts | Virginia Department of Elections ENR, Georgia Secretary of State ENR |
+| Vote counts | Virginia Department of Elections ENR, Georgia Secretary of State ENR, Arizona Secretary of State ENR (House only; Arizona has no 2026 Senate race) |
 | Projected winners and national totals | Wikipedia articles on the 2026 Senate and House elections (CC BY-SA 4.0) |
 
 These files contain no election results. Results only ever come from the live feeds.

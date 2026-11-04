@@ -1,24 +1,32 @@
 {
- "sources": [
-  {
-   "state": "VA",
-   "label": "Virginia Department of Elections (ENR)",
-   "human_url": "https://enr.elections.virginia.gov/results/public/Virginia/elections/2026-November-General",
-   "export_url": "https://enr.elections.virginia.gov/cdn/results/virginia/export-2026-November-General.json",
-   "senate_exact": [
-    "Member, United States Senate"
-   ],
-   "house_regex": "^Member, House of Representatives \\((\\d+)(?:st|nd|rd|th) District\\)$"
-  },
-  {
-   "state": "GA",
-   "label": "Georgia Secretary of State (ENR)",
-   "human_url": "https://results.sos.ga.gov/results/public/Georgia/elections/11032026GeneralAndSpecialElection",
-   "export_url": "https://results.sos.ga.gov/cdn/results/Georgia/export-11032026GeneralAndSpecialElection.json",
-   "senate_exact": [
-    "US Senate"
-   ],
-   "house_regex": "^US House of Representatives - District (\\d+)$"
-  }
- ]
+  "sources": [
+    {
+      "state": "VA",
+      "label": "Virginia Department of Elections (ENR)",
+      "human_url": "https://enr.elections.virginia.gov/results/public/Virginia/elections/2026-November-General",
+      "export_url": "https://enr.elections.virginia.gov/cdn/results/virginia/export-2026-November-General.json",
+      "senate_exact": [
+        "Member, United States Senate"
+      ],
+      "house_regex": "^Member, House of Representatives \\((\\d+)(?:st|nd|rd|th) District\\)$"
+    },
+    {
+      "state": "GA",
+      "label": "Georgia Secretary of State (ENR)",
+      "human_url": "https://results.sos.ga.gov/results/public/Georgia/elections/11032026GeneralAndSpecialElection",
+      "export_url": "https://results.sos.ga.gov/cdn/results/Georgia/export-11032026GeneralAndSpecialElection.json",
+      "senate_exact": [
+        "US Senate"
+      ],
+      "house_regex": "^US House of Representatives - District (\\d+)$"
+    },
+    {
+      "state": "AZ",
+      "label": "Arizona Secretary of State (ENR)",
+      "human_url": "https://app.enhancedvoting.com/results/public/Arizona/elections/110326GeneralElection",
+      "export_url": "https://app.enhancedvoting.com/cdn/results/Arizona/export-110326GeneralElection.json",
+      "senate_exact": [],
+      "house_regex": "^U\\.S\\. Representative in Congress - District No\\. (\\d+)$"
+    }
+  ]
 }
