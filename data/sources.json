@@ -171,6 +171,26 @@
       "senate_exact": [],
       "house_regex": "^US Representative$|^United States Representative, .+ District$",
       "format": "inenr"
+    },
+    {
+      "state": "ND",
+      "label": "North Dakota Secretary of State (TotalResults)",
+      "human_url": "https://resultsnd.sos.nd.gov/",
+      "export_url": "https://api.resultsnd.sos.nd.gov/Election/GetElectionList?cId=north-dakota",
+      "senate_exact": [],
+      "house_regex": "^Representative in Congress$",
+      "format": "totalresults"
+    },
+    {
+      "state": "AR",
+      "label": "Arkansas Secretary of State (Tally ENR)",
+      "human_url": "https://arkansas.tally-enr.com/",
+      "export_url": "https://enr-results-api.totalresults.com/Election/GetElectionList?cId=arkansas",
+      "senate_exact": [
+        "U.S. Senate"
+      ],
+      "house_regex": "^U\\.S\\. Congress District (\\d+)$",
+      "format": "totalresults"
     }
   ]
 }

@@ -23,6 +23,8 @@ links to the results host.
 | AL | alsos HTML | www2.alabamavotes.gov/electionNight/statewideResultsByContest.aspx?ecode=1001305 | sos.alabama.gov /alabama-votes/voter/enr-current-list links www2.alabamavotes.gov electionNight pages (same URL shape) | robots.txt 404; page timestamp CT | 2026-11-04 |
 | HI | hisummary TSV | elections.hawaii.gov/wp-content/results/2026 General/summary.txt | elections.hawaii.gov is the state Office of Elections; page links the files | Last-Modified used as source time | 2026-11-04 |
 | VT | vtenr JSON (2-step) | static.electionresults.vermont.gov/elections/elections.json | sos.vermont.gov elections-results-data page links https://electionresults.vermont.gov/ | robots.txt 200, nothing barring this use; lastUpdatedDate is ET | 2026-11-04 |
+| ND | totalresults JSON API | api.resultsnd.sos.nd.gov (Election/Contest endpoints, client north-dakota) | sos.nd.gov/elections/election-results links resultsnd.sos.nd.gov as official results | robots.txt 404 (no robots file) on web and API hosts; no terms page found; open unauthenticated JSON | 2026-11-04 |
+| AR | totalresults JSON API | enr-results-api.totalresults.com (client arkansas) | sos.arkansas.gov/elections/research/election-results links arkansas.tally-enr.com as official results | robots.txt 404 on API host; tally-enr.com/robots.txt WAF 403 (not a fetched disallow list - see reasoning below); no terms page found; open unauthenticated JSON | 2026-11-04 |
 | IN | inenr JSON (3-step) | enr.indianavoters.in.gov/site/data/settings.json | enr.indianavoters.in.gov is a subdomain of the official state voter portal indianavoters.in.gov | no challenge; WriteTime is ET | 2026-11-04 |
 
 ## Suspended
@@ -46,9 +48,20 @@ links to the results host.
 - SC: scvotes.gov/2026-general-election-results posts timestamped XLSX
   snapshots (latest seen 12:00 AM ET); no live 2026 general ENR page found on
   enr-scvotes.org.
-- Not yet examined: NY, MA, NJ, IL, KY, LA, TN, AK, ND, MS, AR, KS, OK, DE.
+- Not yet examined: NY, MA, NJ, IL, KY, LA, TN, MS, DE (TN elections.tn.gov
+  403 to curl; KS/OK have Clarity county roots but no state page found).
 - Stay-out: NV/PA/CA (Incapsula), MN (bot ban), VA (403), CO/FL/WI/IA/OH/MO/MI
   (no state linkage found), RI (stale + no linkage).
+
+## Qualification reasoning: WAF 403 vs terms
+
+- A 403 from a host's Web Application Firewall on one probed path (e.g.
+  arkansas.tally-enr.com/robots.txt) is not a fetched robots.txt disallow and
+  not terms text; it says nothing about the clean JSON endpoints the official
+  site itself loads in every visitor's browser. Qualification for ND/AR rests
+  on: official linkage from the SoS site, robots.txt absent (404) on the API
+  origins actually fetched, no terms page found on the results sites, and
+  unauthenticated public JSON. Blocked paths are not retried to evade the WAF.
 
 ## Known data notes
 

@@ -659,6 +659,122 @@ pub async fn parse_inenr(client: &reqwest::Client, settings: &[u8], cfg: &Source
     Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate: None, house, refresh_note: None })
 }
 
+
+/// KNOWiNK "TotalResults" JSON API (North Dakota: api.resultsnd.sos.nd.gov,
+/// Arkansas: enr-results-api.totalresults.com). export_url points at
+/// {base}/Election/GetElectionList?cId={client}; the election marked
+/// isDefault is used. Party labels come from GetElectionInfo (AR keys
+/// parties by GUID, ND inlines REP/DEM/IND), names from
+/// GetContestSearchList, votes from GetContestResults. lastUpdated is UTC.
+pub fn totalresults_feed(list: &[u8], info: &[u8], search: &[u8], results: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    use chrono::TimeZone;
+    use std::collections::HashMap;
+    let parse = |b: &[u8]| serde_json::from_slice::<serde_json::Value>(b).map_err(|e| format!("respons tidak dikenali: {e}"));
+    let info = parse(info)?;
+    let search = parse(search)?;
+    let results = parse(results)?;
+    let ts = |v: &serde_json::Value| -> Option<DateTime<Utc>> {
+        let s = v["lastUpdated"].as_str()?;
+        if let Ok(d) = DateTime::parse_from_rfc3339(s) {
+            return Some(d.with_timezone(&Utc));
+        }
+        chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%S%.f").ok().map(|n| Utc.from_utc_datetime(&n))
+    };
+    let source_time = [ts(&info), ts(&search), ts(&results)].into_iter().flatten().max().ok_or("waktu sumber tidak tercantum")?;
+    let mut parties: HashMap<String, String> = HashMap::new();
+    if let Some(obj) = info["response"]["parties"].as_object() {
+        for (k, v) in obj {
+            let name = v["partyName"].as_str().filter(|s| !s.is_empty()).or_else(|| v["abbreviation"].as_str()).unwrap_or(k.as_str());
+            parties.insert(k.clone(), name.to_string());
+        }
+    }
+    let meta = search["response"]["contests"].as_object().ok_or("daftar kontes tidak ditemukan")?;
+    let res = results["response"]["contests"].as_object().ok_or("hasil kontes tidak ditemukan")?;
+    let house_re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let prefix_re = Regex::new(r"^([A-Z]{2,5})\s+(.+)$").map_err(|e| e.to_string())?;
+    let mut senate = None;
+    let mut house = Vec::new();
+    for (key, m) in meta {
+        let cname = m["contestName"].as_str().unwrap_or("").trim();
+        let is_sen = cfg.senate_exact.iter().any(|n| n == cname);
+        let cap = house_re.captures(cname);
+        if !is_sen && cap.is_none() {
+            continue;
+        }
+        let r = match res.get(key) {
+            Some(r) => r,
+            None => continue,
+        };
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for ch in r["choices"].as_array().cloned().unwrap_or_default() {
+            let votes = ch["totalVotes"].as_u64().unwrap_or(0);
+            let id = ch["choiceID"].as_str().unwrap_or("");
+            let meta_name = m["choices"][id]["name"].as_str().unwrap_or("").trim().to_string();
+            let lower = meta_name.to_ascii_lowercase();
+            if lower.contains("write-in") || lower.contains("write in") || ch["isWriteIn"].as_bool() == Some(true) {
+                write_in += votes;
+                continue;
+            }
+            let pid = ch["partyID"].as_str().filter(|s| !s.trim().is_empty()).or_else(|| m["choices"][id]["partyID"].as_str()).unwrap_or("");
+            let pname = parties.get(pid).map(|s| s.as_str()).unwrap_or(pid);
+            let party = Party::classify(Some(pname));
+            // Some clients prefix names with a party code ("REP Tom Cotton").
+            let name = match prefix_re.captures(&meta_name) {
+                Some(c) if !parties.contains_key(&c[1]) => c[2].trim().to_string(),
+                _ => meta_name,
+            };
+            candidates.push(Candidate { name, party, votes });
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        if candidates.is_empty() {
+            return Err(format!("kontes {cname}: tidak ada kandidat terbaca"));
+        }
+        let precincts = match (r["precinctsReporting"].as_u64(), r["totalPrecincts"].as_u64()) {
+            (Some(a), Some(b)) => Some((a as u32, b as u32)),
+            _ => None,
+        };
+        if is_sen {
+            senate = Some(Contest { state: cfg.state.clone(), label: cname.to_string(), district: None, candidates, write_in, precincts, polling_pct: None });
+        } else {
+            let dist = cap.and_then(|c| c.get(1)).and_then(|g| g.as_str().parse::<u32>().ok());
+            let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
+            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts, polling_pct: None });
+        }
+    }
+    if senate.is_none() && house.is_empty() {
+        return Err("format berkas tidak dikenali: tidak ada kontes federal".into());
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate, house, refresh_note: None })
+}
+
+pub async fn parse_totalresults(client: &reqwest::Client, list_body: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    let cid = cfg.export_url.split("cId=").nth(1).and_then(|s| s.split('&').next()).ok_or("export_url tidak mencantumkan cId")?.to_string();
+    let base = cfg.export_url.split("/Election/GetElectionList").next().ok_or("export_url tidak dikenali")?.to_string();
+    let list: serde_json::Value = serde_json::from_slice(list_body).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+    let eid = list
+        .as_array()
+        .and_then(|a| a.iter().find(|e| e["isDefault"].as_bool() == Some(true)))
+        .and_then(|e| e["electionID"].as_str())
+        .map(|s| s.to_string())
+        .ok_or("pemilihan bawaan tidak ditemukan")?;
+    let get = |path: String| {
+        let client = client.clone();
+        async move {
+            let r = client.get(&path).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+            if !r.status().is_success() {
+                return Err(format!("sumber membalas HTTP {}", r.status().as_u16()));
+            }
+            r.bytes().await.map_err(|e| e.to_string())
+        }
+    };
+    let info = get(format!("{base}/Election/GetElectionInfo?cId={cid}&eId={eid}")).await?;
+    let search = get(format!("{base}/Contest/GetContestSearchList?cId={cid}&eId={eid}")).await?;
+    let results = get(format!("{base}/Contest/GetContestResults?cId={cid}&eId={eid}")).await?;
+    totalresults_feed(list_body, &info, &search, &results, cfg)
+}
+
 /// Per-source cache kept in the warm function instance. The source files are
 /// large (27-48 MB), so one lock per source gives single-flight refreshes, a
 /// minimum interval between origin requests, and conditional requests
@@ -751,6 +867,8 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             parse_vtenr(client, &bytes, cfg).await?
         } else if cfg.format == "inenr" {
             parse_inenr(client, &bytes, cfg).await?
+        } else if cfg.format == "totalresults" {
+            parse_totalresults(client, &bytes, cfg).await?
         } else if cfg.format == "txsos" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
             parse_txsos(&String::from_utf8_lossy(&bytes), cfg, t)?

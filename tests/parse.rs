@@ -339,3 +339,48 @@ fn hi_summary_real_file() {
     assert_eq!(f.house[1].district, Some(2));
     assert_eq!(f.house[1].candidates[1].party, Party::Rep);
 }
+
+#[test]
+fn totalresults_nd_real_files() {
+    let cfg = SourceCfg { state: "ND".into(), label: "x".into(), human_url: "h".into(), export_url: "https://api.resultsnd.sos.nd.gov/Election/GetElectionList?cId=north-dakota".into(), senate_exact: vec![], house_regex: r"^Representative in Congress$".into(), format: "totalresults".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let f = totalresults_feed(
+        include_bytes!("fixtures/nd_electionlist.json"),
+        include_bytes!("fixtures/nd_electioninfo.json"),
+        include_bytes!("fixtures/nd_contests.json"),
+        include_bytes!("fixtures/nd_results.json"),
+        &cfg,
+    )
+    .unwrap();
+    assert_eq!(f.senate.is_none(), true);
+    assert_eq!(f.house.len(), 1);
+    assert_eq!(f.house[0].label, "Distrik at-large");
+    assert_eq!(f.house[0].candidates[0].name, "Julie  Fedorchak");
+    assert_eq!(f.house[0].candidates[0].party, Party::Rep);
+    assert_eq!(f.house[0].candidates[0].votes, 134477);
+    assert_eq!(f.house[0].candidates[1].party, Party::Dem);
+    assert_eq!(f.house[0].write_in, 340);
+}
+
+#[test]
+fn totalresults_ar_real_files() {
+    let cfg = SourceCfg { state: "AR".into(), label: "x".into(), human_url: "h".into(), export_url: "https://enr-results-api.totalresults.com/Election/GetElectionList?cId=arkansas".into(), senate_exact: vec!["U.S. Senate".into()], house_regex: r"^U\.S\. Congress District (\d+)$".into(), format: "totalresults".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let f = totalresults_feed(
+        include_bytes!("fixtures/ar_electionlist.json"),
+        include_bytes!("fixtures/ar_electioninfo.json"),
+        include_bytes!("fixtures/ar_contests.json"),
+        include_bytes!("fixtures/ar_results.json"),
+        &cfg,
+    )
+    .unwrap();
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].name, "Tom Cotton");
+    assert_eq!(s.candidates[0].party, Party::Rep);
+    assert_eq!(s.candidates[0].votes, 480526);
+    assert_eq!(s.candidates[1].name, "Hallie Shoffner");
+    assert_eq!(s.candidates[1].party, Party::Dem);
+    assert_eq!(s.candidates[2].party, Party::Other);
+    assert_eq!(f.house.len(), 4);
+    assert_eq!(f.house[0].district, Some(1));
+    assert_eq!(f.house[0].candidates[0].name, "Rick Crawford");
+    assert_eq!(f.house[1].candidates[0].party, Party::Rep);
+}
