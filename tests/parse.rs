@@ -474,3 +474,32 @@ fn nj_merges_county_sum_json() {
     assert_eq!(districts, vec![2, 8, 10, 11]);
     assert!(house.iter().all(|c| !c.candidates.is_empty()));
 }
+
+
+#[test]
+fn nj_ambiguous_surname_is_not_merged_and_partyless_votes_kept_as_write_in() {
+    let cfg = SourceCfg {
+        state: "NJ".into(),
+        label: "New Jersey".into(),
+        human_url: String::new(),
+        export_url: String::new(),
+        senate_exact: vec![],
+        house_regex: String::new(),
+        format: "njclarity".into(),
+        suspended: None,
+        extra_urls: vec![],
+        head_regex: None,
+    };
+    let doc = br#"{ "Contests" : [ { "C" : "US Senate", "PR" : 3, "TP" : 3,
+        "CH" : [ "John SMITH", "Bob SMITH", "SMITH", "WRITE-IN" ],
+        "P" : [ "DEM", "REP", "", "" ],
+        "V" : [ 100, 50, 7, 3 ] } ] }"#;
+    let docs = vec![("Atlantic".to_string(), doc.to_vec())];
+    let (senate, _) = njclarity_merge(&docs, &cfg).unwrap();
+    let s = senate.expect("senate");
+    assert_eq!(s.candidates.len(), 2);
+    assert_eq!(s.candidates[0].name, "John SMITH");
+    // The ambiguous "SMITH" row is not attributed to either Smith; its votes
+    // stay counted as write-ins alongside the explicit write-in row.
+    assert_eq!(s.write_in, 10);
+}

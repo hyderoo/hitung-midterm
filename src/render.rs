@@ -245,7 +245,12 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                         Lead::Tie => "tie",
                         Lead::NoVotes => "none",
                     };
-                    (cls, format!("{}: {}", s.name, lead_text(c.lead())))
+                    (cls, format!(
+                        "{}: {}{}",
+                        s.name,
+                        lead_text(c.lead()),
+                        feed_of(code).and_then(|f| f.refresh_note.as_deref()).map(|n| format!(". {n}")).unwrap_or_default()
+                    ))
                 } else {
                     ("none", format!("{}: data belum tersedia dari sumber resmi yang tersambung", s.name))
                 }
@@ -259,7 +264,7 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                     (
                         "band",
                         format!(
-                            "{}: {} dari {} kursi sudah ada suara. Unggul sementara: Demokrat {}, Republik {}, Lainnya {}. {} kursi baru sebagian melapor. Waktu sumber {}",
+                            "{}: {} dari {} kursi sudah ada suara. Unggul sementara: Demokrat {}, Republik {}, Lainnya {}. {} kursi baru sebagian melapor. Waktu sumber {}{}",
                             s.name,
                             t.with_data(),
                             reference.house_seats.get(code).copied().unwrap_or(0),
@@ -267,7 +272,8 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                             t.rep,
                             t.other,
                             f.house.iter().filter(|c| is_partial(c)).count(),
-                            wib(f.source_time)
+                            wib(f.source_time),
+                            f.refresh_note.as_deref().map(|n| format!(". {n}")).unwrap_or_default()
                         ),
                     )
                 }
@@ -590,7 +596,7 @@ pub fn json(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, now
             FeedResult::Ok(s) => serde_json::json!({
                 "state": s.state, "status": "ok", "source": s.source_label, "page": s.human_url,
                 "source_time": s.source_time, "stale": is_stale(now, s.source_time),
-                "senate": s.senate, "house": s.house,
+                "note": s.refresh_note, "senate": s.senate, "house": s.house,
             }),
             FeedResult::Failed { state, source_label, human_url, reason } => serde_json::json!({
                 "state": state, "status": "failed", "source": source_label, "page": human_url, "reason": reason,

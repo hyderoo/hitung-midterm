@@ -997,50 +997,90 @@ pub async fn parse_njclarity(client: &reqwest::Client, first_ver_body: &[u8], cf
     let mut urls = vec![cfg.export_url.clone()];
     urls.extend(cfg.extra_urls.iter().cloned());
     let mut docs: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut failed: Vec<String> = Vec::new();
     let mut newest: Option<DateTime<Utc>> = None;
+    let mut oldest: Option<DateTime<Utc>> = None;
     let mut first = Some(String::from_utf8_lossy(first_ver_body).trim().to_string());
     for ver_url in &urls {
         let base = ver_url.strip_suffix("current_ver.txt").ok_or("url county tidak berakhiran current_ver.txt")?;
-        let ver = if let Some(v) = first.take() {
-            v
-        } else {
-            let r = client.get(ver_url).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
-            if !r.status().is_success() {
-                return Err(format!("sumber membalas HTTP {}", r.status().as_u16()));
-            }
-            r.text().await.map_err(|e| e.to_string())?.trim().to_string()
-        };
-        let sum_url = format!("{base}{ver}/json/sum.json");
-        let r = client.get(&sum_url).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
-        if !r.status().is_success() {
-            return Err(format!("sumber membalas HTTP {}", r.status().as_u16()));
-        }
-        if let Some(d) = r.headers().get("last-modified").and_then(|v| v.to_str().ok()).and_then(|s| DateTime::parse_from_rfc2822(s).ok()).map(|d| d.with_timezone(&Utc)) {
-            if newest.map(|n| d > n).unwrap_or(true) {
-                newest = Some(d);
-            }
-        }
-        let body = r.bytes().await.map_err(|e| e.to_string())?;
         let county = base
             .trim_end_matches('/')
             .rsplit('/')
             .nth(1)
             .unwrap_or("")
-            .to_string();
-        docs.push((county, body.to_vec()));
+            .replace('_', " ");
+        let one: Result<Vec<u8>, String> = async {
+            let ver = if let Some(v) = first.take() {
+                v
+            } else {
+                let r = client.get(ver_url).send().await.map_err(|e| format!("{e}"))?;
+                if !r.status().is_success() {
+                    return Err(format!("HTTP {}", r.status().as_u16()));
+                }
+                r.text().await.map_err(|e| e.to_string())?.trim().to_string()
+            };
+            let sum_url = format!("{base}{ver}/json/sum.json");
+            let r = client.get(&sum_url).send().await.map_err(|e| format!("{e}"))?;
+            if !r.status().is_success() {
+                return Err(format!("HTTP {}", r.status().as_u16()));
+            }
+            if let Some(d) = r.headers().get("last-modified").and_then(|v| v.to_str().ok()).and_then(|s| DateTime::parse_from_rfc2822(s).ok()).map(|d| d.with_timezone(&Utc)) {
+                if newest.map(|n| d > n).unwrap_or(true) {
+                    newest = Some(d);
+                }
+                if oldest.map(|o| d < o).unwrap_or(true) {
+                    oldest = Some(d);
+                }
+            }
+            Ok(r.bytes().await.map_err(|e| e.to_string())?.to_vec())
+        }
+        .await;
+        match one {
+            Ok(body) => docs.push((county, body)),
+            Err(e) => failed.push(format!("{county} ({e})")),
+        }
+    }
+    if docs.is_empty() {
+        return Err(format!("semua kabupaten gagal diambil: {}", failed.join(", ")));
     }
     let (senate, house) = njclarity_merge(&docs, cfg)?;
+    // The aggregate is only as fresh as its slowest county: source_time is
+    // the oldest county stamp, and the note carries the full range.
+    let source_time = oldest.ok_or("sumber tidak mencantumkan Last-Modified")?;
+    let covered: Vec<String> = docs.iter().map(|(c, _)| c.clone()).collect();
+    let missing: Vec<&str> = NJ_ALL_COUNTIES
+        .iter()
+        .filter(|c| !covered.iter().any(|x| x.eq_ignore_ascii_case(c)) && !failed.iter().any(|f| f.to_lowercase().starts_with(&c.to_lowercase())))
+        .cloned()
+        .collect();
+    let mut note = format!(
+        "Agregat {} dari 21 kabupaten; belum tercakup: {}. Cap waktu kabupaten {} sampai {} UTC; waktu sumber memakai kabupaten paling lambat. Rasio TPS hanya lingkup kabupaten tercakup",
+        covered.len(),
+        missing.join(", "),
+        oldest.unwrap().format("%H:%M"),
+        newest.unwrap().format("%H:%M"),
+    );
+    if !failed.is_empty() {
+        note.push_str(&format!(". Gagal diambil: {}", failed.join(", ")));
+    }
     Ok(StateFeed {
         state: cfg.state.clone(),
         source_label: cfg.label.clone(),
         human_url: cfg.human_url.clone(),
         export_url: cfg.export_url.clone(),
-        source_time: newest.ok_or("sumber tidak mencantumkan Last-Modified")?,
+        source_time,
         senate,
         house,
-        refresh_note: None,
+        refresh_note: Some(note),
     })
 }
+
+/// All 21 New Jersey counties, for coverage reporting.
+const NJ_ALL_COUNTIES: &[&str] = &[
+    "Atlantic", "Bergen", "Burlington", "Camden", "Cape May", "Cumberland", "Essex",
+    "Gloucester", "Hudson", "Hunterdon", "Mercer", "Middlesex", "Monmouth", "Morris",
+    "Ocean", "Passaic", "Salem", "Somerset", "Sussex", "Union", "Warren",
+];
 
 pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(Option<Contest>, Vec<Contest>), String> {
     let sen_re = Regex::new(r"(?i)\b(u\.?\s?s\.?|united states)\s+senat(e|or)\b").map_err(|e| e.to_string())?;
@@ -1048,7 +1088,11 @@ pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(O
     let cd_re = Regex::new(r"(?i)\bcd\s*(\d+)").map_err(|e| e.to_string())?;
     let nth_re = Regex::new(r"(?i)(\d+)\s*(?:st|nd|rd|th)\s*cong").map_err(|e| e.to_string())?;
     // Counties whose lone House contest carries no district number and that
-    // sit entirely inside one district.
+    // sit entirely inside one district, per the official Division of
+    // Elections documents: congressional-district-by-county-2022.pdf and
+    // 2026-official-general-candidates-us-house.pdf list district 2 as
+    // "ATLANTIC - CAPE MAY - CUMBERLAND - GLOUCESTER (part) - OCEAN (part) -
+    // SALEM" - Cape May and Cumberland whole, unlike the "(part)" counties.
     let county_default: &[(&str, u32)] = &[("Cape_May", 2), ("Cumberland", 2)];
     #[derive(Default)]
     struct CandAgg {
@@ -1080,7 +1124,7 @@ pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(O
                     .captures(name)
                     .or_else(|| nth_re.captures(name))
                     .and_then(|c| c[1].parse().ok())
-                    .or_else(|| county_default.iter().find(|(c, _)| c == county).map(|(_, d)| *d));
+                    .or_else(|| county_default.iter().find(|(c, _)| c.replace('_', " ") == *county).map(|(_, d)| *d));
                 match d {
                     Some(d) => Which::House(d),
                     None => continue,
@@ -1141,10 +1185,14 @@ pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(O
             if key.contains(' ') {
                 continue;
             }
-            let target = keys
+            let targets: Vec<String> = keys
                 .iter()
-                .find(|k| k.contains(' ') && k.rsplit(' ').next() == Some(key.as_str()))
-                .cloned();
+                .filter(|k| k.contains(' ') && k.rsplit(' ').next() == Some(key.as_str()))
+                .cloned()
+                .collect();
+            // Merge only when exactly one candidate carries that surname: a
+            // single-token listing is then unambiguously that candidate.
+            let target = if targets.len() == 1 { Some(targets[0].clone()) } else { None };
             if let Some(t) = target {
                 if let Some(from) = agg.candidates.remove(key) {
                     let e = agg.candidates.get_mut(&t).unwrap();
