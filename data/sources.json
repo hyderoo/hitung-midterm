@@ -162,6 +162,15 @@
       "senate_exact": [],
       "house_regex": "^REPRESENTATIVE TO CONGRESS$",
       "format": "vtenr"
+    },
+    {
+      "state": "IN",
+      "label": "Indiana Secretary of State (hasil sementara)",
+      "human_url": "https://enr.indianavoters.in.gov/site/index.html",
+      "export_url": "https://enr.indianavoters.in.gov/site/data/settings.json",
+      "senate_exact": [],
+      "house_regex": "^US Representative$|^United States Representative, .+ District$",
+      "format": "inenr"
     }
   ]
 }

@@ -573,6 +573,92 @@ pub async fn parse_vtenr(client: &reqwest::Client, elections: &[u8], cfg: &Sourc
     Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate: None, house, refresh_note: None })
 }
 
+
+/// Indiana election-night results (Scytl "FirstTuesday" AngularJS SPA backed
+/// by versioned static JSON). export_url points at data/settings.json; its
+/// VersionType suffixes the data files (e.g. statewideElectionsC_A.json).
+/// WriteTime values are Eastern time (UTC-5 after the Nov 1 2026 DST change).
+pub async fn parse_inenr(client: &reqwest::Client, settings: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    use chrono::{FixedOffset, NaiveDateTime, TimeZone};
+    let st: serde_json::Value = serde_json::from_slice(settings).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+    let root = st.get("Root").unwrap_or(&st);
+    let ver = root["VersionType"].as_str().ok_or("versi data tidak tercantum")?;
+    let base = cfg.export_url.strip_suffix("settings.json").ok_or("export_url tidak berakhiran settings.json")?;
+    let get = |path: String| {
+        let client = client.clone();
+        async move {
+            let r = client.get(&path).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+            if !r.status().is_success() {
+                return Err(format!("sumber membalas HTTP {}", r.status().as_u16()));
+            }
+            let b = r.bytes().await.map_err(|e| e.to_string())?;
+            let v: serde_json::Value = serde_json::from_slice(&b).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+            Ok::<serde_json::Value, String>(v.get("Root").cloned().unwrap_or(v))
+        }
+    };
+    let cats = get(format!("{base}statewideElectionsC_{ver}.json")).await?;
+    let mut latest = root["WriteTime"].as_str().unwrap_or("").to_string();
+    if cats["WriteTime"].as_str().unwrap_or("") > latest.as_str() {
+        latest = cats["WriteTime"].as_str().unwrap_or("").to_string();
+    }
+    let empty = vec![];
+    let headings = cats["List"].as_array().unwrap_or(&empty);
+    let mut cat_id = None;
+    for h in headings {
+        let items = h["Items"]["Item"].as_array().unwrap_or(&empty);
+        for it in items {
+            let name = it["OFFICE_CATEGORY_NAME"].as_str().unwrap_or("");
+            if cfg.senate_exact.iter().any(|n| n == name) || Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?.is_match(name) {
+                cat_id = it["OFFICECATEGORYID"].as_str().map(|s| s.to_string());
+            }
+        }
+    }
+    let cat_id = cat_id.ok_or("kategori DPR tidak ditemukan")?;
+    let house_re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let dist_re = Regex::new(r"\((\d+)\)").map_err(|e| e.to_string())?;
+    let data = get(format!("{base}OffCatC_{cat_id}_{ver}.json")).await?;
+    if data["WriteTime"].as_str().unwrap_or("") > latest.as_str() {
+        latest = data["WriteTime"].as_str().unwrap_or("").to_string();
+    }
+    let naive = NaiveDateTime::parse_from_str(&latest, "%Y-%m-%dT%H:%M:%S%.f").map_err(|e| e.to_string())?;
+    let source_time = FixedOffset::west_opt(5 * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
+    let races = data["StatewideSummary"]["Race"].as_array().ok_or("tidak ada daftar kontes")?;
+    let mut house = Vec::new();
+    for race in races {
+        let title = race["OFFICE_TITLE"].as_str().unwrap_or("").trim();
+        let sub = race["SubSortOrder"].as_str().unwrap_or("");
+        if house_re.captures(title).is_none() && house_re.captures(sub).is_none() {
+            continue;
+        }
+        let dist = dist_re.captures(sub).and_then(|c| c[1].parse::<u32>().ok());
+        let cands = race["Candidates"]["Candidate"].as_array().cloned().unwrap_or_default();
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for c in &cands {
+            let votes = c["TOTAL"].as_u64().unwrap_or(0);
+            let name = c["NAME_ON_BALLOT"].as_str().unwrap_or("").trim().to_string();
+            if name.to_ascii_lowercase().contains("write-in") || name.to_ascii_lowercase().contains("write in") {
+                write_in += votes;
+                continue;
+            }
+            let letter = c["PARTY"].as_str().unwrap_or("").trim().to_ascii_lowercase();
+            let party = if letter == "d" { Party::Dem } else if letter == "r" { Party::Rep } else { Party::Other };
+            candidates.push(Candidate { name, party, votes });
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        if candidates.is_empty() {
+            return Err(format!("kontes {title}: tidak ada kandidat terbaca"));
+        }
+        let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
+        house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts: None, polling_pct: None });
+    }
+    if house.is_empty() {
+        return Err("format berkas tidak dikenali: tidak ada kontes DPR".into());
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate: None, house, refresh_note: None })
+}
+
 /// Per-source cache kept in the warm function instance. The source files are
 /// large (27-48 MB), so one lock per source gives single-flight refreshes, a
 /// minimum interval between origin requests, and conditional requests
@@ -663,6 +749,8 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             parse_hisummary(&String::from_utf8_lossy(&bytes), cfg, t)?
         } else if cfg.format == "vtenr" {
             parse_vtenr(client, &bytes, cfg).await?
+        } else if cfg.format == "inenr" {
+            parse_inenr(client, &bytes, cfg).await?
         } else if cfg.format == "txsos" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
             parse_txsos(&String::from_utf8_lossy(&bytes), cfg, t)?
