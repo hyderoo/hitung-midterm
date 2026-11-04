@@ -101,6 +101,7 @@ fn build_contest(state: &str, item: &Item, district: Option<u32>, label: String,
         candidates,
         write_in,
         precincts: if seen && p > 0 { Some((r, p)) } else { None },
+        polling_pct: None,
     }
 }
 
@@ -175,7 +176,7 @@ pub fn parse_ncsbe(bytes: &[u8], cfg: &SourceCfg, source_time: DateTime<Utc>) ->
             (Ok(a), Ok(b)) if b > 0 => Some((a, b)),
             _ => None,
         };
-        Contest { state: cfg.state.clone(), label, district, candidates, write_in, precincts }
+        Contest { state: cfg.state.clone(), label, district, candidates, write_in, precincts, polling_pct: None }
     };
     let mut senate = None;
     let mut house = Vec::new();
@@ -222,6 +223,7 @@ pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> R
         if !is_sen && dist.is_none() {
             continue;
         }
+        let polling_pct = Regex::new(r"Polling Locations Reporting: (\d+)%").ok().and_then(|p| p.captures(seg)).and_then(|c| c[1].parse::<u8>().ok());
         let mut candidates = Vec::new();
         let mut write_in = 0u64;
         for r in row.captures_iter(seg) {
@@ -233,7 +235,7 @@ pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> R
             }
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
-        let c = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts: None };
+        let c = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts: None, polling_pct };
         if is_sen {
             senate = Some(c);
         } else {

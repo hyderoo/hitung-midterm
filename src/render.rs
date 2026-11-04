@@ -136,6 +136,9 @@ fn cand_line(c: &Candidate) -> String {
 }
 
 fn precinct_line(c: &Contest) -> String {
+    if let (None, Some(p)) = (c.precincts, c.polling_pct) {
+        return format!("Lokasi pemilihan melapor: {p}% (baru sebagian jika di bawah 100%)");
+    }
     match c.precincts {
         Some((r, p)) => format!("TPS melapor {} dari {}", num(r as u64), num(p as u64)),
         None => "Jumlah TPS melapor: Tidak tersedia".into(),

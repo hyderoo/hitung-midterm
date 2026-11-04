@@ -54,6 +54,9 @@ pub struct Contest {
     /// Precincts reporting / participating, summed from the locality rows of
     /// the same feed. None when the feed does not provide them.
     pub precincts: Option<(u32, u32)>,
+    /// Share of polling locations reporting, in percent, for sources that
+    /// publish only a percentage (Texas).
+    pub polling_pct: Option<u8>,
 }
 
 impl Contest {
