@@ -134,6 +134,73 @@ pub fn parse_export(bytes: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> 
     })
 }
 
+#[derive(Deserialize)]
+struct NcRow {
+    cnm: String,
+    bnm: String,
+    pty: String,
+    vct: String,
+    prt: String,
+    ptl: String,
+}
+
+/// NC State Board of Elections statewide results file (results_0.txt): a JSON
+/// array with one row per candidate per contest. The file carries no embedded
+/// timestamp, so the HTTP Last-Modified header is used as the source time.
+pub fn parse_ncsbe(bytes: &[u8], cfg: &SourceCfg, source_time: DateTime<Utc>) -> Result<StateFeed, String> {
+    let rows: Vec<NcRow> = serde_json::from_slice(bytes).map_err(|e| format!("format file tidak dikenali: {e}"))?;
+    let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let mut order: Vec<String> = Vec::new();
+    let mut by: HashMap<String, Vec<&NcRow>> = HashMap::new();
+    for r in &rows {
+        if !by.contains_key(&r.cnm) {
+            order.push(r.cnm.clone());
+        }
+        by.entry(r.cnm.clone()).or_default().push(r);
+    }
+    let build = |name: &str, district: Option<u32>, label: String| -> Contest {
+        let rs = &by[name];
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for r in rs.iter() {
+            let v: u64 = r.vct.parse().unwrap_or(0);
+            if r.bnm.to_ascii_lowercase().starts_with("write-in") {
+                write_in += v;
+            } else {
+                candidates.push(Candidate { name: clean_name(&r.bnm), party: Party::classify(Some(&r.pty)), votes: v });
+            }
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        let precincts = match (rs[0].prt.parse::<u32>(), rs[0].ptl.parse::<u32>()) {
+            (Ok(a), Ok(b)) if b > 0 => Some((a, b)),
+            _ => None,
+        };
+        Contest { state: cfg.state.clone(), label, district, candidates, write_in, precincts }
+    };
+    let mut senate = None;
+    let mut house = Vec::new();
+    for name in &order {
+        if cfg.senate_exact.iter().any(|n| n == name) {
+            senate = Some(build(name, None, "Senat AS".into()));
+        } else if let Some(c) = re.captures(name) {
+            if let Ok(d) = c[1].parse::<u32>() {
+                house.push(build(name, Some(d), format!("Distrik {d}")));
+            }
+        }
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed {
+        state: cfg.state.clone(),
+        source_label: cfg.label.clone(),
+        human_url: cfg.human_url.clone(),
+        export_url: cfg.export_url.clone(),
+        source_time,
+        senate,
+        house,
+        refresh_note: None,
+    })
+}
+
 /// Per-source cache kept in the warm function instance. The source files are
 /// large (27-48 MB), so one lock per source gives single-flight refreshes, a
 /// minimum interval between origin requests, and conditional requests
@@ -185,8 +252,19 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             return Err(format!("sumber membalas HTTP {}", resp.status().as_u16()));
         }
         let etag = resp.headers().get("etag").and_then(|v| v.to_str().ok()).map(|s| s.to_string());
+        let lm = resp
+            .headers()
+            .get("last-modified")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
+            .map(|d| d.with_timezone(&Utc));
         let bytes = resp.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
-        let feed = parse_export(&bytes, cfg)?;
+        let feed = if cfg.format == "ncsbe" {
+            let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
+            parse_ncsbe(&bytes, cfg, t)?
+        } else {
+            parse_export(&bytes, cfg)?
+        };
         Ok(Some((feed, etag)))
     }
     .await;

@@ -8,6 +8,7 @@ fn cfg() -> SourceCfg {
         export_url: "https://example.test/x.json".into(),
         senate_exact: vec!["Test Senate".into()],
         house_regex: r"^Test House \((\d+)(?:st|nd|rd|th) District\)$".into(),
+        format: String::new(),
     }
 }
 
@@ -125,4 +126,22 @@ mod proj {
         assert_eq!((t.dem, t.rep), (Some(52), Some(43)));
         assert_eq!(parse_totals("| seats_after1 = \n").dem, None);
     }
+}
+
+#[test]
+fn ncsbe_statewide_rows() {
+    use hitung_midterm::{config::SourceCfg, feed::parse_ncsbe, model::Party};
+    let cfg = SourceCfg { state: "NC".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US SENATE (VOTE FOR 1)".into()], house_regex: r"^US HOUSE OF REPRESENTATIVES DISTRICT (\d+)\s*\(VOTE FOR 1\)$".into(), format: "ncsbe".into() };
+    let row = |c: &str, b: &str, p: &str, v: &str| format!(r#"{{"cnm":"{c}","bnm":"{b}","pty":"{p}","vct":"{v}","prt":"5","ptl":"6"}}"#);
+    let j = format!("[{},{},{},{},{}]",
+        row("US SENATE (VOTE FOR 1)", "B Rep", "REP", "10"), row("US SENATE (VOTE FOR 1)", "A Dem", "DEM", "30"),
+        row("US HOUSE OF REPRESENTATIVES DISTRICT 02  (VOTE FOR 1)", "C", "DEM", "7"),
+        row("US HOUSE OF REPRESENTATIVES DISTRICT 02  (VOTE FOR 1)", "Write-In (Miscellaneous)", "", "2"),
+        row("NC STATE SENATE DISTRICT 14 (VOTE FOR 1)", "Z", "DEM", "99"));
+    let f = parse_ncsbe(j.as_bytes(), &cfg, chrono::Utc::now()).unwrap();
+    assert_eq!(f.senate.as_ref().unwrap().candidates[0].party, Party::Dem);
+    assert_eq!(f.senate.as_ref().unwrap().precincts, Some((5, 6)));
+    assert_eq!(f.house.len(), 1);
+    assert_eq!(f.house[0].district, Some(2));
+    assert_eq!(f.house[0].write_in, 2);
 }

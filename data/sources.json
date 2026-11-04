@@ -27,6 +27,17 @@
       "export_url": "https://app.enhancedvoting.com/cdn/results/Arizona/export-110326GeneralElection.json",
       "senate_exact": [],
       "house_regex": "^U\\.S\\. Representative in Congress - District No\\. (\\d+)$"
+    },
+    {
+      "state": "NC",
+      "label": "North Carolina State Board of Elections (hasil statewide)",
+      "human_url": "https://er.ncsbe.gov/",
+      "export_url": "https://er.ncsbe.gov/enr/20261103/data/results_0.txt",
+      "senate_exact": [
+        "US SENATE (VOTE FOR 1)"
+      ],
+      "house_regex": "^US HOUSE OF REPRESENTATIVES DISTRICT (\\d+)\\s*\\(VOTE FOR 1\\)$",
+      "format": "ncsbe"
     }
   ]
 }

@@ -11,6 +11,9 @@ pub struct SourceCfg {
     pub export_url: String,
     pub senate_exact: Vec<String>,
     pub house_regex: String,
+    /// "" = Enhanced Voting Media Export; "ncsbe" = NC State Board statewide results file.
+    #[serde(default)]
+    pub format: String,
 }
 #[derive(Deserialize)]
 struct Sources {
