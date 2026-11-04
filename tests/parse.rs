@@ -163,3 +163,30 @@ fn txsos_html_rows() {
     assert_eq!(f.house.len(), 1);
     assert!(parse_txsos("<html>404</html>", &cfg, chrono::Utc::now()).is_err());
 }
+
+#[test]
+fn txsos_zero_votes_partial_and_ties() {
+    use hitung_midterm::{config::SourceCfg, feed::parse_txsos, model::Lead, render::{age, is_partial, Tally}};
+    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into() };
+    let tr = |p: &str, c: &str, v: &str| format!(r#"<tr><td class="party">{p}</td><td class="candidate">{c}</td><td class="ballot">{v}</td></tr>"#);
+    let blk = |n: &str, pct: u32, rows: String| format!(r#"<div class="election">{n}</div><div class="polling">Polling Locations Reporting: {pct}%</div><table>{rows}</table>"#);
+    let html = [
+        blk("U. S. REPRESENTATIVE DISTRICT 1", 100, tr("REPUBLICAN", "A", "10") + &tr("DEMOCRATIC", "B", "5")),
+        blk("U. S. REPRESENTATIVE DISTRICT 2", 0, tr("REPUBLICAN", "C", "0") + &tr("DEMOCRATIC", "D", "0")),
+        blk("U. S. REPRESENTATIVE DISTRICT 3", 56, tr("REPUBLICAN", "E", "7") + &tr("DEMOCRATIC", "F", "7")),
+        blk("U. S. REPRESENTATIVE DISTRICT 4", 99, tr("REPUBLICAN", "G", "3") + &tr("DEMOCRATIC", "H", "9")),
+    ].concat();
+    let now = chrono::Utc::now();
+    let f = parse_txsos(&html, &cfg, now).unwrap();
+    assert_eq!(f.house[1].lead(), Lead::NoVotes);
+    assert_eq!(f.house[2].lead(), Lead::Tie);
+    assert_eq!(f.house[1].polling_pct, Some(0));
+    let flags: Vec<bool> = f.house.iter().map(is_partial).collect();
+    assert_eq!(flags, vec![false, true, true, true], "99% is partial; only 100% is not");
+    let mut t = Tally::default();
+    for c in &f.house { t.add(c.lead()); }
+    assert_eq!(t.with_data(), 3, "zero-vote contest is not counted as having data");
+    assert_eq!((t.dem, t.rep, t.tie, t.novotes), (1, 1, 1, 1));
+    let old = now - chrono::Duration::minutes(178);
+    assert!(age(now, old).contains("2 jam 58 menit"), "{}", age(now, old));
+}

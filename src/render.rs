@@ -88,7 +88,7 @@ impl Tally {
         }
     }
     pub fn with_data(&self) -> u32 {
-        self.dem + self.rep + self.other + self.tie + self.novotes
+        self.dem + self.rep + self.other + self.tie
     }
 }
 
@@ -133,6 +133,16 @@ fn cand_line(c: &Candidate) -> String {
         c.party.label(),
         num(c.votes)
     )
+}
+
+/// True when the source says this contest has not finished reporting.
+/// No threshold is applied: any reported fraction below 100% is partial.
+pub fn is_partial(c: &Contest) -> bool {
+    match (c.precincts, c.polling_pct) {
+        (Some((r, p)), _) => r < p,
+        (None, Some(p)) => p < 100,
+        _ => false,
+    }
 }
 
 fn precinct_line(c: &Contest) -> String {
@@ -249,13 +259,15 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                     (
                         "band",
                         format!(
-                            "{}: {} dari {} kursi ada data. Unggul sementara: Demokrat {}, Republik {}, Lainnya {}",
+                            "{}: {} dari {} kursi sudah ada suara. Unggul sementara: Demokrat {}, Republik {}, Lainnya {}. {} kursi baru sebagian melapor. Waktu sumber {}",
                             s.name,
-                            f.house.len(),
+                            t.with_data(),
                             reference.house_seats.get(code).copied().unwrap_or(0),
                             t.dem,
                             t.rep,
-                            t.other
+                            t.other,
+                            f.house.iter().filter(|c| is_partial(c)).count(),
+                            wib(f.source_time)
                         ),
                     )
                 }
@@ -502,6 +514,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
                 for cand in c.candidates.iter().take(3) {
                     o.push_str(&cand_line(cand));
                 }
+                let _ = write!(o, "<small class=\"mute\">{}. Waktu sumber {}.</small>", precinct_line(c), wib(f.source_time));
                 o.push_str("</div>");
             }
             o.push_str("</details>");
