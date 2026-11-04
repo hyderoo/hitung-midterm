@@ -418,7 +418,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
     let chamber = if view == View::Senate { "Senat" } else { "DPR" };
     let _ = write!(
         o,
-        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Total kursi kamar bergantung pada cara menghitung senator independen yang bergabung dengan satu fraksi dan pada waktu pengambilan data, dan sumber yang kami pakai tidak mencantumkan kutipan per pemilihan. Angka di atas hanya jumlah pemilihan yang sudah ada hitungan resmi.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
+        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Situs ini baru memuat hitungan resmi dari beberapa negara bagian, jadi belum ada dasar untuk total kamar. Angka di atas hanya jumlah pemilihan yang sudah ada hitungan resmi.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
         ok.len(),
         if connected.is_empty() { "belum ada".to_string() } else { connected }
     );
