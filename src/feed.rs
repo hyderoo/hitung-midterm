@@ -253,7 +253,7 @@ pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> R
 pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
     use chrono::{FixedOffset, NaiveDateTime, TimeZone};
     let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
-    let ts = Regex::new(r"Results last updated:\s*(\d+/\d+/\d{4})\s*\|?\s*(\d+:\d{2} [AP]M) (PT|MT|CT|ET)").map_err(|e| e.to_string())?;
+    let ts = Regex::new(r"Results last updated:\s*(?:<[^>]+>\s*)*(\d+/\d+/\d{4})\s*\|?\s*(\d+:\d{2} [AP]M)\s*(PT|MT|CT|ET)").map_err(|e| e.to_string())?;
     let c = ts.captures(html).ok_or("halaman tidak mencantumkan waktu pembaruan")?;
     let naive = NaiveDateTime::parse_from_str(&format!("{} {}", &c[1], &c[2]), "%m/%d/%Y %I:%M %p").map_err(|e| e.to_string())?;
     // US standard time offsets (valid after the Nov 1 2026 DST change).

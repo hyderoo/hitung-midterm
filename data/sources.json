@@ -106,8 +106,7 @@
         "United States Senator"
       ],
       "house_regex": "^United States Representative DISTRICT (\\d+)$",
-      "format": "orsos",
-      "suspended": "integrasi sedang diverifikasi; sumber belum dipublikasikan"
+      "format": "orsos"
     }
   ]
 }

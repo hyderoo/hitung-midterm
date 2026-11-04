@@ -255,7 +255,7 @@ fn orsos_nm_layout_mt_time_and_precincts() {
     use hitung_midterm::{config::SourceCfg, feed::parse_orsos, model::Party};
     let cfg = SourceCfg { state: "NM".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["United States Senator".into()], house_regex: r"^United States Representative DISTRICT (\d+)$".into(), format: "orsos".into(), suspended: None };
     let cand = |n: &str, p: &str, v: &str| format!(r#"<div class="col display-results-box-d"><h1>{n}</h1><h2 class="X">{p}</h2></div><div class="col display-results-box-f"><h1>{v}</h1></div>"#);
-    let html = format!(r#"Results last updated: 11/4/2026 2:21 AM MT <h1>United States Senator </h1><div class="precinct-fully">Precincts Fully: 2204 / 2204</div>{}{}<h1>United States Representative DISTRICT 2</h1><div>Precincts Fully: 10 / 20</div>{}{}"#,
+    let html = format!(r#"Results last updated:</span><span>11/4/2026 2:21 AM MT</span> <h1>United States Senator </h1><div class="precinct-fully">Precincts Fully: 2204 / 2204</div>{}{}<h1>United States Representative DISTRICT 2</h1><div>Precincts Fully: 10 / 20</div>{}{}"#,
         cand("BEN R LUJAN","Democrat","455,165"), cand("LARRY E MARKER","Republican","265,557"), cand("A","Democrat","86,650"), cand("B","Republican","123,113"));
     let f = parse_orsos(&html, &cfg).unwrap();
     assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T09:21:00+00:00");
