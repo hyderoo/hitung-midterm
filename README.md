@@ -52,4 +52,4 @@ The tests use a small synthetic fixture (`tests/fixtures/test_only_export.json`,
 
 ## License
 
-MIT for the code. Election data belongs to the respective state agencies.
+MIT for the code. Election data belongs to the respective state agencies. Public Sans (public/PublicSans.ttf) is under the SIL Open Font License 1.1.
