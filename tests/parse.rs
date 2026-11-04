@@ -538,3 +538,18 @@ fn unresolved_is_not_counted_as_a_tie() {
     assert_eq!(t.unresolved, 1);
     assert_eq!(t.with_data(), 1);
 }
+
+#[test]
+fn sd_source_badge_does_not_remove_candidate_or_make_winner_call() {
+    let cfg = SourceCfg { state: "SD".into(), senate_exact: vec!["United States Senator".into()], house_regex: "^United States Representative$".into(), ..cfg() };
+    let f = parse_orsos(include_str!("fixtures/sd_current_badge.html"), &cfg).unwrap();
+    assert_eq!(f.senate.as_ref().unwrap().candidates[0].votes, 184571);
+    assert!(f.senate.as_ref().unwrap().candidates[0].name.contains("Rounds"));
+    assert_eq!(f.senate.as_ref().unwrap().candidates.len(), 2);
+    assert_eq!(f.house[0].candidates[0].votes, 195570);
+    assert!(f.house[0].candidates[0].name.contains("Jackley"));
+    assert_eq!(f.house[0].candidates.len(), 2);
+    assert_eq!(f.senate.as_ref().unwrap().lead(), Lead::Ahead(Party::Rep));
+    let broken = include_str!("fixtures/sd_current_badge.html").replace("display-results-box-f", "changed-layout");
+    assert!(parse_orsos(&broken, &cfg).is_err());
+}

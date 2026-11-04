@@ -264,7 +264,7 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
     // block (candidate name/vote cells are h1s too). This keeps non-federal
     // contests (Governor etc.) from leaking into the last federal segment.
     let head = Regex::new(cfg.head_regex.as_deref().unwrap_or(r"<h1>([^<]*)</h1>")).map_err(|e| e.to_string())?;
-    let cand = Regex::new(r#"(?s)<h1>([^<]*)</h1>\s*<h2 class="[^"]*">([^<]*)</h2>.*?<div class="col display-results-box-f">\s*<(?:div|h1)>([\d,]+)</(?:div|h1)>"#).map_err(|e| e.to_string())?;
+    let cand = Regex::new(r#"(?s)<h1>\s*(?:<img\b[^>]*>\s*)?([^<]*)</h1>\s*<h2 class="[^"]*">([^<]*)</h2>.*?<div class="col display-results-box-f">\s*<(?:div|h1)>([\d,]+)</(?:div|h1)>"#).map_err(|e| e.to_string())?;
     let prec = Regex::new(r"Precincts Fully:\s*(\d+)\s*/\s*(\d+)").map_err(|e| e.to_string())?;
     let cand_spans: Vec<(usize, usize)> = cand.captures_iter(html).map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end())).collect();
     let heads: Vec<(usize, usize, String)> = head
@@ -299,6 +299,9 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
             } else {
                 candidates.push(Candidate { name: clean_name(&r[1]), party: Party::classify(Some(&party_txt)), votes: v });
             }
+        }
+        if candidates.is_empty() {
+            return Err(format!("kontes {name}: tidak ada kandidat terbaca; tata letak sumber mungkin berubah"));
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
         let label = if is_sen { "Senat AS".to_string() } else { dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string()) };
