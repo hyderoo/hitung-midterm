@@ -983,6 +983,212 @@ pub const MAX_STALE_SERVE_SECS: u64 = 15 * 60;
 
 static CACHE: OnceLock<Mutex<HashMap<String, Arc<Mutex<Option<Entry>>>>>> = OnceLock::new();
 
+
+/// New Jersey: the state publishes no statewide night feed; the official page
+/// links each county's Clarity ENR site. cfg.export_url and cfg.extra_urls
+/// hold each county's current_ver.txt URL; the live version directory carries
+/// json/sum.json with every contest (C), candidate names (CH, party-prefixed),
+/// votes (V) and precincts reporting (PR/TP). Contest wording varies by
+/// county ("United States Senate" vs "United States Senator"; "2nd Cong" vs
+/// "(8th Congressional District)"), so matching is by pattern, not exact
+/// names. County coverage is partial (the linked counties only) and the
+/// source label says so. Source time is the newest sum.json Last-Modified.
+pub async fn parse_njclarity(client: &reqwest::Client, first_ver_body: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    let mut urls = vec![cfg.export_url.clone()];
+    urls.extend(cfg.extra_urls.iter().cloned());
+    let mut docs: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut newest: Option<DateTime<Utc>> = None;
+    let mut first = Some(String::from_utf8_lossy(first_ver_body).trim().to_string());
+    for ver_url in &urls {
+        let base = ver_url.strip_suffix("current_ver.txt").ok_or("url county tidak berakhiran current_ver.txt")?;
+        let ver = if let Some(v) = first.take() {
+            v
+        } else {
+            let r = client.get(ver_url).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+            if !r.status().is_success() {
+                return Err(format!("sumber membalas HTTP {}", r.status().as_u16()));
+            }
+            r.text().await.map_err(|e| e.to_string())?.trim().to_string()
+        };
+        let sum_url = format!("{base}{ver}/json/sum.json");
+        let r = client.get(&sum_url).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+        if !r.status().is_success() {
+            return Err(format!("sumber membalas HTTP {}", r.status().as_u16()));
+        }
+        if let Some(d) = r.headers().get("last-modified").and_then(|v| v.to_str().ok()).and_then(|s| DateTime::parse_from_rfc2822(s).ok()).map(|d| d.with_timezone(&Utc)) {
+            if newest.map(|n| d > n).unwrap_or(true) {
+                newest = Some(d);
+            }
+        }
+        let body = r.bytes().await.map_err(|e| e.to_string())?;
+        let county = base
+            .trim_end_matches('/')
+            .rsplit('/')
+            .nth(1)
+            .unwrap_or("")
+            .to_string();
+        docs.push((county, body.to_vec()));
+    }
+    let (senate, house) = njclarity_merge(&docs, cfg)?;
+    Ok(StateFeed {
+        state: cfg.state.clone(),
+        source_label: cfg.label.clone(),
+        human_url: cfg.human_url.clone(),
+        export_url: cfg.export_url.clone(),
+        source_time: newest.ok_or("sumber tidak mencantumkan Last-Modified")?,
+        senate,
+        house,
+        refresh_note: None,
+    })
+}
+
+pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(Option<Contest>, Vec<Contest>), String> {
+    let sen_re = Regex::new(r"(?i)\b(u\.?\s?s\.?|united states)\s+senat(e|or)\b").map_err(|e| e.to_string())?;
+    let house_re = Regex::new(r"(?i)\b(house of rep(resentatives|s)|member of congress)\b").map_err(|e| e.to_string())?;
+    let cd_re = Regex::new(r"(?i)\bcd\s*(\d+)").map_err(|e| e.to_string())?;
+    let nth_re = Regex::new(r"(?i)(\d+)\s*(?:st|nd|rd|th)\s*cong").map_err(|e| e.to_string())?;
+    // Counties whose lone House contest carries no district number and that
+    // sit entirely inside one district.
+    let county_default: &[(&str, u32)] = &[("Cape_May", 2), ("Cumberland", 2)];
+    #[derive(Default)]
+    struct CandAgg {
+        display: String,
+        party: Option<String>,
+        votes: u64,
+    }
+    #[derive(Default)]
+    struct Agg {
+        candidates: std::collections::BTreeMap<String, CandAgg>,
+        pr: u32,
+        tp: u32,
+    }
+    let mut sen: Option<Agg> = None;
+    let mut houses: std::collections::BTreeMap<u32, Agg> = std::collections::BTreeMap::new();
+    for (county, doc) in docs {
+        let g: serde_json::Value = serde_json::from_slice(doc).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+        let contests = g["Contests"].as_array().ok_or("daftar kontes tidak dikenali")?;
+        for c in contests {
+            let name = c["C"].as_str().unwrap_or("").trim();
+            enum Which {
+                Sen,
+                House(u32),
+            }
+            let which = if sen_re.is_match(name) {
+                Which::Sen
+            } else if house_re.is_match(name) {
+                let d: Option<u32> = cd_re
+                    .captures(name)
+                    .or_else(|| nth_re.captures(name))
+                    .and_then(|c| c[1].parse().ok())
+                    .or_else(|| county_default.iter().find(|(c, _)| c == county).map(|(_, d)| *d));
+                match d {
+                    Some(d) => Which::House(d),
+                    None => continue,
+                }
+            } else {
+                continue;
+            };
+            let agg = match which {
+                Which::Sen => sen.get_or_insert_with(Agg::default),
+                Which::House(d) => houses.entry(d).or_default(),
+            };
+            agg.pr += c["PR"].as_u64().unwrap_or(0) as u32;
+            agg.tp += c["TP"].as_u64().unwrap_or(0) as u32;
+            let names = c["CH"].as_array().cloned().unwrap_or_default();
+            let votes = c["V"].as_array().cloned().unwrap_or_default();
+            let parties = c["P"].as_array().cloned().unwrap_or_default();
+            for (i, n) in names.iter().enumerate() {
+                let raw = n.as_str().unwrap_or("").trim().to_string();
+                if raw.is_empty() {
+                    continue;
+                }
+                let party = parties
+                    .get(i)
+                    .and_then(|p| p.as_str())
+                    .map(|p| p.trim().to_string())
+                    .filter(|p| !p.is_empty());
+                let (display, prefix_party) = match raw.split_once(' ') {
+                    Some((pre, rest))
+                        if pre.chars().all(|c| c.is_ascii_uppercase()) && pre.len() <= 5 && !rest.is_empty() =>
+                    {
+                        (rest.to_string(), Some(pre.to_string()))
+                    }
+                    _ => (raw, None),
+                };
+                let key = display.to_uppercase();
+                let v = votes.get(i).and_then(|v| v.as_u64()).unwrap_or(0);
+                let e = agg.candidates.entry(key).or_insert_with(|| CandAgg { display: display.clone(), party: None, votes: 0 });
+                e.votes += v;
+                if e.party.is_none() {
+                    e.party = party.or(prefix_party);
+                }
+                // Prefer mixed-case display over an all-caps variant.
+                if e.display.chars().all(|c| !c.is_ascii_lowercase()) && display.chars().any(|c| c.is_ascii_lowercase()) {
+                    e.display = display;
+                }
+            }
+        }
+    }
+    let build = |mut agg: Agg, label: String, district: Option<u32>| -> Option<Contest> {
+        if agg.candidates.is_empty() {
+            return None;
+        }
+        // Counties are inconsistent about given names ("BOOKER" next to "Cory
+        // BOOKER"). Fold a single-token name into the candidate whose last
+        // name it matches.
+        let keys: Vec<String> = agg.candidates.keys().cloned().collect();
+        for key in &keys {
+            if key.contains(' ') {
+                continue;
+            }
+            let target = keys
+                .iter()
+                .find(|k| k.contains(' ') && k.rsplit(' ').next() == Some(key.as_str()))
+                .cloned();
+            if let Some(t) = target {
+                if let Some(from) = agg.candidates.remove(key) {
+                    let e = agg.candidates.get_mut(&t).unwrap();
+                    e.votes += from.votes;
+                    if e.party.is_none() {
+                        e.party = from.party;
+                    }
+                }
+            }
+        }
+        // Counties that enumerate write-ins list them as party-less names.
+        // Real candidates are the ones at least one county gives a party.
+        let mut write_in = 0u64;
+        let mut candidates: Vec<Candidate> = Vec::new();
+        for (_, c) in agg.candidates {
+            match c.party {
+                Some(p) => candidates.push(Candidate { name: c.display, party: Party::classify(Some(&p)), votes: c.votes }),
+                None => write_in += c.votes,
+            }
+        }
+        if candidates.is_empty() {
+            return None;
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        Some(Contest {
+            state: cfg.state.clone(),
+            label,
+            district,
+            candidates,
+            write_in,
+            precincts: Some((agg.pr, agg.tp)),
+            polling_pct: None,
+        })
+    };
+    let senate = sen.and_then(|a| build(a, "Senat AS".into(), None));
+    let mut house = Vec::new();
+    for (d, agg) in houses {
+        if let Some(c) = build(agg, format!("Distrik {d}"), Some(d)) {
+            house.push(c);
+        }
+    }
+    Ok((senate, house))
+}
+
 async fn slot(state: &str) -> Arc<Mutex<Option<Entry>>> {
     let map = CACHE.get_or_init(|| Mutex::new(HashMap::new()));
     let mut g = map.lock().await;
@@ -1063,6 +1269,8 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             parse_totalresults(client, &bytes, cfg).await?
         } else if cfg.format == "desocrata" {
             parse_desocrata(&bytes, cfg)?
+        } else if cfg.format == "njclarity" {
+            parse_njclarity(client, &bytes, cfg).await?
         } else if cfg.format == "scxlsx" {
             parse_scxlsx(client, &bytes, cfg).await?
         } else if cfg.format == "txsos" {

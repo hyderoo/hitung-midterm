@@ -23,6 +23,7 @@ links to the results host.
 | AL | alsos HTML | www2.alabamavotes.gov/electionNight/statewideResultsByContest.aspx?ecode=1001305 | sos.alabama.gov /alabama-votes/voter/enr-current-list links www2.alabamavotes.gov electionNight pages (same URL shape) | robots.txt 404; page timestamp CT | 2026-11-04 |
 | HI | hisummary TSV | elections.hawaii.gov/wp-content/results/2026 General/summary.txt | elections.hawaii.gov is the state Office of Elections; page links the files | Last-Modified used as source time | 2026-11-04 |
 | VT | vtenr JSON (2-step) | static.electionresults.vermont.gov/elections/elections.json | sos.vermont.gov elections-results-data page links https://electionresults.vermont.gov/ | robots.txt 200, nothing barring this use; lastUpdatedDate is ET | 2026-11-04 |
+| NJ | njclarity county fan-out | 14 county Clarity ENR pages linked from nj.gov/state/elections official results page; counties' current_ver.txt -> json/sum.json | state page links each county ENR directly; Clarity vendor terms already read for OR/NM/SD/NE | contest wording varies by county; parser matches by pattern, folds surname-only duplicates, treats party-less enumerations as write-ins; single-district counties without a district number (Cape May, Cumberland) default to district 2; label states 14 of 21 counties; source time is newest sum.json Last-Modified | 2026-11-04 |
 | SC | scxlsx snapshot | scvotes.gov/2026-general-election-results/ (latest timestamped Results.xlsx) | scvotes.gov is the state election commission site; page posts the xlsx snapshots itself | robots.txt allows /wp-content/ (disallows only calendar paths); xlsx Last-Modified is source time | 2026-11-04 |
 | DE | desocrata JSON (Socrata open data) | data.delaware.gov/resource/yg7x-kgjc.json | elections.delaware.gov/results/enr/GE2026.html links this exact dataset/query | robots.txt allows /resource/ (disallows only browse/catalog paths); crawl-delay 1, our refresh is >=90s; no terms page | 2026-11-04 |
 | ND | totalresults JSON API | api.resultsnd.sos.nd.gov (Election/Contest endpoints, client north-dakota) | sos.nd.gov/elections/election-results links resultsnd.sos.nd.gov as official results | robots.txt 404 (no robots file) on web and API hosts; no terms page found; open unauthenticated JSON | 2026-11-04 |
@@ -52,9 +53,6 @@ links to the results host.
   further; the alternate S3 xlsx host has no fetchable robots and needs an
   xlsx parser, deferred.
 - NY: flateau.elections.ny.gov and nyenr.elections.ny.gov both 403 (WAF).
-- NJ: official night page links county pages on 4+ different systems (13 on
-  Clarity + Passaic; Bergen/Camden/Sussex on county clerk sites), no statewide
-  page. Aggregation would need per-county parsers; deferred.
 - IL: elections.il.gov ElectionVoteTotals.aspx still lists only the 2026
   primary; no general files posted yet.
 - KY: elect.ky.gov 2026 page has no general results link yet;

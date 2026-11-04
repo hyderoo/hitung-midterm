@@ -437,3 +437,40 @@ fn sc_does_not_double_bump_next_morning_am_file() {
 <a href="https://scvotes.gov/wp-content/uploads/2026/11/2026-11-04-2PM-General-Election-Results.xlsx">afternoon</a>"#;
     assert_eq!(scxlsx_pick_link(html).unwrap(), "https://scvotes.gov/wp-content/uploads/2026/11/2026-11-04-2PM-General-Election-Results.xlsx");
 }
+
+
+#[test]
+fn nj_merges_county_sum_json() {
+    let cfg = SourceCfg {
+        state: "NJ".into(),
+        label: "New Jersey".into(),
+        human_url: String::new(),
+        export_url: String::new(),
+        senate_exact: vec![],
+        house_regex: String::new(),
+        format: "njclarity".into(),
+        suspended: None,
+        extra_urls: vec![],
+        head_regex: None,
+    };
+    let atl = std::fs::read("tests/fixtures/nj_atlantic_sum.json").unwrap();
+    let esx = std::fs::read("tests/fixtures/nj_essex_sum.json").unwrap();
+    let docs = vec![("Atlantic".to_string(), atl), ("Essex".to_string(), esx)];
+    let (senate, house) = njclarity_merge(&docs, &cfg).unwrap();
+    let s = senate.expect("senate");
+    assert_eq!(s.label, "Senat AS");
+    // Atlantic: Booker 51,378 + Murphy 38,536; Essex adds its own Booker/Murphy votes.
+    let booker = s.candidates.iter().find(|c| c.name.to_uppercase().contains("BOOKER")).expect("booker");
+    assert_eq!(booker.party, Party::Dem);
+    assert!(booker.votes > 51378);
+    // Fernandez and Kuniansky are party-less in Essex but carry parties in
+    // Atlantic, so they survive as candidates; nothing lands in write-ins.
+    assert_eq!(s.candidates.len(), 4);
+    assert_eq!(s.write_in, 0);
+    assert_eq!(s.precincts, Some((145 + 557, 145 + 575)));
+    // Atlantic reports district 2, Essex districts 8, 10, 11.
+    let mut districts: Vec<u32> = house.iter().map(|c| c.district.unwrap()).collect();
+    districts.sort_unstable();
+    assert_eq!(districts, vec![2, 8, 10, 11]);
+    assert!(house.iter().all(|c| !c.candidates.is_empty()));
+}

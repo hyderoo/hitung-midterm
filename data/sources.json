@@ -213,6 +213,30 @@
       ],
       "house_regex": "^U\\.S\\.\\s+House of Representatives, District\\s+(\\d+) \\(Vote For 1\\)$",
       "format": "scxlsx"
+    },
+    {
+      "state": "NJ",
+      "label": "New Jersey (gabungan 14 dari 21 kabupaten)",
+      "human_url": "https://www.nj.gov/state/elections/election-information-results.shtml",
+      "export_url": "https://results.enr.clarityelections.com/NJ/Atlantic/127487/current_ver.txt",
+      "extra_urls": [
+        "https://results.enr.clarityelections.com/NJ/Burlington/127582/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Cape_May/127585/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Cumberland/127562/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Essex/127486/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Gloucester/127298/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Hudson/127495/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Mercer/127554/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Middlesex/127580/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Monmouth/127586/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Morris/127576/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Ocean/127556/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Union/127567/current_ver.txt",
+        "https://results.enr.clarityelections.com/NJ/Passaic/127401/current_ver.txt"
+      ],
+      "senate_exact": [],
+      "house_regex": "",
+      "format": "njclarity"
     }
   ]
 }
