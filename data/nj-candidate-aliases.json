@@ -1,0 +1,474 @@
+{
+  "ballot_sources": [
+    "https://www.nj.gov/state/elections/assets/pdf/election-results/2026/2026-official-general-candidates-us-house.pdf",
+    "https://www.nj.gov/state/elections/assets/pdf/election-results/2026/2026-official-general-candidates-us-senate.pdf"
+  ],
+  "nickname_sources": [
+    "https://www.congress.gov/member/herbert-conaway/C001136",
+    "http://conaway.house.gov/about"
+  ],
+  "aliases": [
+    {
+      "contest": "S",
+      "raw": "REP JUSTIN MURPHY",
+      "name": "Justin Murphy",
+      "party": "rep"
+    },
+    {
+      "contest": "S",
+      "raw": "DEM CORY BOOKER",
+      "name": "Cory Booker",
+      "party": "dem"
+    },
+    {
+      "contest": "S",
+      "raw": "NPC VERONICA FERNANDEZ",
+      "name": "Veronica Fernandez",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "NPD JOANNE KUNIANSKY",
+      "name": "Joanne Kuniansky",
+      "party": "other"
+    },
+    {
+      "contest": "2",
+      "raw": "REP JEFF VAN DREW",
+      "name": "Jeff Van Drew",
+      "party": "rep"
+    },
+    {
+      "contest": "2",
+      "raw": "DEM ZACK MULLOCK",
+      "name": "Zack Mullock",
+      "party": "dem"
+    },
+    {
+      "contest": "2",
+      "raw": "NPC RAMON MORA, JR.",
+      "name": "Ramon Mora Jr.",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "JUSTIN MURPHY",
+      "name": "Justin Murphy",
+      "party": "rep"
+    },
+    {
+      "contest": "S",
+      "raw": "CORY BOOKER",
+      "name": "Cory Booker",
+      "party": "dem"
+    },
+    {
+      "contest": "S",
+      "raw": "JOANNE KUNIANSKY",
+      "name": "Joanne Kuniansky",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "VERONICA FERNANDEZ",
+      "name": "Veronica Fernandez",
+      "party": "other"
+    },
+    {
+      "contest": "1",
+      "raw": "DAMON GALDO",
+      "name": "Damon Galdo",
+      "party": "rep"
+    },
+    {
+      "contest": "1",
+      "raw": "DONALD NORCROSS",
+      "name": "Donald Norcross",
+      "party": "dem"
+    },
+    {
+      "contest": "3",
+      "raw": "MICHAEL P. MCGUIRE",
+      "name": "Michael P. McGuire",
+      "party": "rep"
+    },
+    {
+      "contest": "3",
+      "raw": "HERBERT CONAWAY, JR.",
+      "name": "Herb Conaway",
+      "party": "dem"
+    },
+    {
+      "contest": "3",
+      "raw": "RYAN MICHAEL KELLY",
+      "name": "Ryan Michael Kelly",
+      "party": "other"
+    },
+    {
+      "contest": "3",
+      "raw": "STEVEN WELZER",
+      "name": "Steven Welzer",
+      "party": "other"
+    },
+    {
+      "contest": "2",
+      "raw": "RAMON MORA, JR.",
+      "name": "Ramon Mora Jr.",
+      "party": "other"
+    },
+    {
+      "contest": "2",
+      "raw": "ZACK MULLOCK",
+      "name": "Zack Mullock",
+      "party": "dem"
+    },
+    {
+      "contest": "2",
+      "raw": "JEFF VAN DREW",
+      "name": "Jeff Van Drew",
+      "party": "rep"
+    },
+    {
+      "contest": "8",
+      "raw": "ROB MENENDEZ",
+      "name": "Rob Menendez",
+      "party": "dem"
+    },
+    {
+      "contest": "8",
+      "raw": "ARISTOTLE ELIOPOULOS",
+      "name": "Aristotle Eliopoulos",
+      "party": "other"
+    },
+    {
+      "contest": "8",
+      "raw": "DA'SHONE HUGHEY",
+      "name": "Da'Shone Hughey",
+      "party": "other"
+    },
+    {
+      "contest": "8",
+      "raw": "CRAIG HONTS",
+      "name": "Craig Honts",
+      "party": "other"
+    },
+    {
+      "contest": "10",
+      "raw": "CARMEN BUCCO",
+      "name": "Carmen Bucco",
+      "party": "rep"
+    },
+    {
+      "contest": "10",
+      "raw": "LAMONICA R. MCIVER",
+      "name": "LaMonica R. McIver",
+      "party": "dem"
+    },
+    {
+      "contest": "11",
+      "raw": "JOE HATHAWAY",
+      "name": "Joe Hathaway",
+      "party": "rep"
+    },
+    {
+      "contest": "11",
+      "raw": "ANALILIA MEJIA",
+      "name": "Analilia Mejia",
+      "party": "dem"
+    },
+    {
+      "contest": "11",
+      "raw": "ALAN B. BOND",
+      "name": "Alan B. Bond",
+      "party": "other"
+    },
+    {
+      "contest": "2",
+      "raw": "RAMON MORA JR.",
+      "name": "Ramon Mora Jr.",
+      "party": "other"
+    },
+    {
+      "contest": "9",
+      "raw": "ROSIE PINO",
+      "name": "Rosie Pino",
+      "party": "rep"
+    },
+    {
+      "contest": "9",
+      "raw": "NELIDA POU",
+      "name": "Nelida Pou",
+      "party": "dem"
+    },
+    {
+      "contest": "9",
+      "raw": "TERRISA BUKOVINAC",
+      "name": "Terrisa Bukovinac",
+      "party": "other"
+    },
+    {
+      "contest": "3",
+      "raw": "HERB CONAWAY",
+      "name": "Herb Conaway",
+      "party": "dem"
+    },
+    {
+      "contest": "12",
+      "raw": "ADAM HAMAWY",
+      "name": "Adam Hamawy",
+      "party": "dem"
+    },
+    {
+      "contest": "12",
+      "raw": "GREGG MELE",
+      "name": "Gregg Mele",
+      "party": "rep"
+    },
+    {
+      "contest": "12",
+      "raw": "WINSTON JORDAN",
+      "name": "Winston Jordan",
+      "party": "other"
+    },
+    {
+      "contest": "12",
+      "raw": "ANDRES JINETE",
+      "name": "Andres Jinete",
+      "party": "other"
+    },
+    {
+      "contest": "6",
+      "raw": "FRANK PALLONE, JR.",
+      "name": "Frank Pallone Jr.",
+      "party": "dem"
+    },
+    {
+      "contest": "6",
+      "raw": "HILLARY HERZIG",
+      "name": "Hillary Herzig",
+      "party": "rep"
+    },
+    {
+      "contest": "4",
+      "raw": "RACHEL PEACE",
+      "name": "Rachel Peace",
+      "party": "dem"
+    },
+    {
+      "contest": "4",
+      "raw": "CHRISTOPHER H. SMITH",
+      "name": "Christopher H. Smith",
+      "party": "rep"
+    },
+    {
+      "contest": "6",
+      "raw": "FRANK PALLONE JR.",
+      "name": "Frank Pallone Jr.",
+      "party": "dem"
+    },
+    {
+      "contest": "7",
+      "raw": "THOMAS H. KEAN, JR.",
+      "name": "Thomas H. Kean Jr.",
+      "party": "rep"
+    },
+    {
+      "contest": "7",
+      "raw": "REBECCA BENNETT",
+      "name": "Rebecca Bennett",
+      "party": "dem"
+    },
+    {
+      "contest": "7",
+      "raw": "SEAMUS PATRICK O'TOOLE",
+      "name": "Seamus Patrick O'Toole",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "IND VERONICA FERNANDEZ",
+      "name": "Veronica Fernandez",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "IND JOANNE KUNIANSKY",
+      "name": "Joanne Kuniansky",
+      "party": "other"
+    },
+    {
+      "contest": "2",
+      "raw": "IND RAMON MORA, JR.",
+      "name": "Ramon Mora Jr.",
+      "party": "other"
+    },
+    {
+      "contest": "4",
+      "raw": "REP CHRISTOPHER H. SMITH",
+      "name": "Christopher H. Smith",
+      "party": "rep"
+    },
+    {
+      "contest": "4",
+      "raw": "DEM RACHEL PEACE",
+      "name": "Rachel Peace",
+      "party": "dem"
+    },
+    {
+      "contest": "S",
+      "raw": "NMC VERONICA FERNANDEZ",
+      "name": "Veronica Fernandez",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "NMD JOANNE KUNIANSKY",
+      "name": "Joanne Kuniansky",
+      "party": "other"
+    },
+    {
+      "contest": "5",
+      "raw": "REP SEAN KIRRANE",
+      "name": "Sean Kirrane",
+      "party": "rep"
+    },
+    {
+      "contest": "5",
+      "raw": "DEM JOSH GOTTHEIMER",
+      "name": "Josh Gottheimer",
+      "party": "dem"
+    },
+    {
+      "contest": "5",
+      "raw": "NMC ADAM RUEDA",
+      "name": "Adam Rueda",
+      "party": "other"
+    },
+    {
+      "contest": "9",
+      "raw": "REP ROSIE PINO",
+      "name": "Rosie Pino",
+      "party": "rep"
+    },
+    {
+      "contest": "9",
+      "raw": "DEM NELIDA POU",
+      "name": "Nelida Pou",
+      "party": "dem"
+    },
+    {
+      "contest": "9",
+      "raw": "NMC TERRISA BUKOVINAC",
+      "name": "Terrisa Bukovinac",
+      "party": "other"
+    },
+    {
+      "contest": "11",
+      "raw": "REP JOE HATHAWAY",
+      "name": "Joe Hathaway",
+      "party": "rep"
+    },
+    {
+      "contest": "11",
+      "raw": "DEM ANALILIA MEJIA",
+      "name": "Analilia Mejia",
+      "party": "dem"
+    },
+    {
+      "contest": "11",
+      "raw": "NMC ALAN B. BOND",
+      "name": "Alan B. Bond",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "NON VERONICA FERNANDEZ",
+      "name": "Veronica Fernandez",
+      "party": "other"
+    },
+    {
+      "contest": "S",
+      "raw": "NON JOANNE KUNIANSKY",
+      "name": "Joanne Kuniansky",
+      "party": "other"
+    },
+    {
+      "contest": "7",
+      "raw": "DEM REBECCA BENNETT",
+      "name": "Rebecca Bennett",
+      "party": "dem"
+    },
+    {
+      "contest": "7",
+      "raw": "REP THOMAS H. KEAN, JR.",
+      "name": "Thomas H. Kean Jr.",
+      "party": "rep"
+    },
+    {
+      "contest": "7",
+      "raw": "NON SEAMUS PATRICK O'TOOLE",
+      "name": "Seamus Patrick O'Toole",
+      "party": "other"
+    },
+    {
+      "contest": "8",
+      "raw": "DEM ROB MENENDEZ",
+      "name": "Rob Menendez",
+      "party": "dem"
+    },
+    {
+      "contest": "8",
+      "raw": "NON DA'SHONE HUGHEY",
+      "name": "Da'Shone Hughey",
+      "party": "other"
+    },
+    {
+      "contest": "8",
+      "raw": "NON CRAIG HONTS",
+      "name": "Craig Honts",
+      "party": "other"
+    },
+    {
+      "contest": "8",
+      "raw": "NON ARISTOTLE ELIOPOULOS",
+      "name": "Aristotle Eliopoulos",
+      "party": "other"
+    },
+    {
+      "contest": "10",
+      "raw": "DEM LAMONICA R. MCIVER",
+      "name": "LaMonica R. McIver",
+      "party": "dem"
+    },
+    {
+      "contest": "10",
+      "raw": "REP CARMEN BUCCO",
+      "name": "Carmen Bucco",
+      "party": "rep"
+    },
+    {
+      "contest": "12",
+      "raw": "DEM ADAM HAMAWY",
+      "name": "Adam Hamawy",
+      "party": "dem"
+    },
+    {
+      "contest": "12",
+      "raw": "REP GREGG MELE",
+      "name": "Gregg Mele",
+      "party": "rep"
+    },
+    {
+      "contest": "12",
+      "raw": "NON ANDRES JINETE",
+      "name": "Andres Jinete",
+      "party": "other"
+    },
+    {
+      "contest": "12",
+      "raw": "NON WINSTON JORDAN",
+      "name": "Winston Jordan",
+      "party": "other"
+    }
+  ]
+}

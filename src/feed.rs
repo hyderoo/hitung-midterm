@@ -997,7 +997,7 @@ static CACHE: OnceLock<Mutex<HashMap<String, Arc<Mutex<Option<Entry>>>>>> = Once
 /// county ("United States Senate" vs "United States Senator"; "2nd Cong" vs
 /// "(8th Congressional District)"), so matching is by pattern, not exact
 /// names. County coverage is partial (the linked counties only) and the
-/// source label says so. Source time is the newest sum.json Last-Modified.
+/// source label says so. Source time is the oldest included county timestamp.
 pub async fn parse_njclarity(client: &reqwest::Client, first_ver_body: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
     let mut urls = vec![cfg.export_url.clone()];
     urls.extend(cfg.extra_urls.iter().cloned());
@@ -1005,6 +1005,7 @@ pub async fn parse_njclarity(client: &reqwest::Client, first_ver_body: &[u8], cf
     let mut failed: Vec<String> = Vec::new();
     let mut newest: Option<DateTime<Utc>> = None;
     let mut oldest: Option<DateTime<Utc>> = None;
+    let mut county_times: Vec<String> = Vec::new();
     let mut first = Some(String::from_utf8_lossy(first_ver_body).trim().to_string());
     for ver_url in &urls {
         let base = ver_url.strip_suffix("current_ver.txt").ok_or("url county tidak berakhiran current_ver.txt")?;
@@ -1029,15 +1030,15 @@ pub async fn parse_njclarity(client: &reqwest::Client, first_ver_body: &[u8], cf
             if !r.status().is_success() {
                 return Err(format!("HTTP {}", r.status().as_u16()));
             }
-            if let Some(d) = r.headers().get("last-modified").and_then(|v| v.to_str().ok()).and_then(|s| DateTime::parse_from_rfc2822(s).ok()).map(|d| d.with_timezone(&Utc)) {
-                if newest.map(|n| d > n).unwrap_or(true) {
-                    newest = Some(d);
-                }
-                if oldest.map(|o| d < o).unwrap_or(true) {
-                    oldest = Some(d);
-                }
-            }
-            Ok(r.bytes().await.map_err(|e| e.to_string())?.to_vec())
+            let d = r.headers().get("last-modified").and_then(|v| v.to_str().ok()).and_then(|s| DateTime::parse_from_rfc2822(s).ok()).map(|d| d.with_timezone(&Utc)).ok_or("Last-Modified tidak tercantum")?;
+            let body = r.bytes().await.map_err(|e|e.to_string())?.to_vec();
+            let value: serde_json::Value = serde_json::from_slice(&body).map_err(|e|e.to_string())?;
+            if !value["Contests"].is_array() {return Err("daftar kontes tidak ada".into());}
+            if newest.map(|n|d>n).unwrap_or(true) {newest=Some(d);}
+            if oldest.map(|n|d<n).unwrap_or(true) {oldest=Some(d);}
+            let stale = if Utc::now().signed_duration_since(d).num_minutes()>30 {" (lebih dari 30 menit)"} else {""};
+            county_times.push(format!("{county}: {} UTC{stale}",d.format("%Y-%m-%d %H:%M")));
+            Ok(body)
         }
         .await;
         match one {
@@ -1062,9 +1063,10 @@ pub async fn parse_njclarity(client: &reqwest::Client, first_ver_body: &[u8], cf
         "Agregat {} dari 21 kabupaten; belum tercakup: {}. Cap waktu kabupaten {} sampai {} UTC; waktu sumber memakai kabupaten paling lambat. Rasio TPS hanya lingkup kabupaten tercakup",
         covered.len(),
         missing.join(", "),
-        oldest.unwrap().format("%H:%M"),
-        newest.unwrap().format("%H:%M"),
+        oldest.unwrap().format("%Y-%m-%d %H:%M"),
+        newest.unwrap().format("%Y-%m-%d %H:%M"),
     );
+    note.push_str(&format!(". Status setiap kabupaten: {}",county_times.join("; ")));
     if !failed.is_empty() {
         note.push_str(&format!(". Gagal diambil: {}", failed.join(", ")));
     }
@@ -1088,165 +1090,92 @@ const NJ_ALL_COUNTIES: &[&str] = &[
 ];
 
 pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(Option<Contest>, Vec<Contest>), String> {
-    let sen_re = Regex::new(r"(?i)\b(u\.?\s?s\.?|united states)\s+senat(e|or)\b").map_err(|e| e.to_string())?;
-    let house_re = Regex::new(r"(?i)\b(house of rep(resentatives|s)|member of congress)\b").map_err(|e| e.to_string())?;
-    let cd_re = Regex::new(r"(?i)\bcd\s*(\d+)").map_err(|e| e.to_string())?;
-    let nth_re = Regex::new(r"(?i)(\d+)\s*(?:st|nd|rd|th)\s*cong").map_err(|e| e.to_string())?;
-    // Counties whose lone House contest carries no district number and that
-    // sit entirely inside one district, per the official Division of
-    // Elections documents: congressional-district-by-county-2022.pdf and
-    // 2026-official-general-candidates-us-house.pdf list district 2 as
-    // "ATLANTIC - CAPE MAY - CUMBERLAND - GLOUCESTER (part) - OCEAN (part) -
-    // SALEM" - Cape May and Cumberland whole, unlike the "(part)" counties.
-    let county_default: &[(&str, u32)] = &[("Cape_May", 2), ("Cumberland", 2)];
-    #[derive(Default)]
-    struct CandAgg {
-        display: String,
-        party: Option<String>,
-        votes: u64,
-    }
+    let senate_re = Regex::new(r"(?i)\b(u\.?\s?s\.?|united states)\s+senat(e|or)\b").unwrap();
+    let house_re = Regex::new(r"(?i)\b(house of rep(resentatives|s)|member of congress)\b").unwrap();
+    let district_re = Regex::new(r"(?i)(?:\bcd\s*(\d+)|(\d+)(?:st|nd|rd|th)\s*cong)").unwrap();
+    let writein_re = Regex::new(r"(?i)^write[-\s]?in\b").unwrap();
+    let aliases: serde_json::Value = serde_json::from_str(include_str!("../data/nj-candidate-aliases.json")).map_err(|e| e.to_string())?;
     #[derive(Default)]
     struct Agg {
-        candidates: std::collections::BTreeMap<String, CandAgg>,
+        candidates: std::collections::BTreeMap<String, (Party, u64)>,
+        write_in: u64,
+        unresolved: u64,
         pr: u32,
         tp: u32,
+        raw_total: u64,
     }
-    let mut sen: Option<Agg> = None;
-    let mut houses: std::collections::BTreeMap<u32, Agg> = std::collections::BTreeMap::new();
-    for (county, doc) in docs {
-        let g: serde_json::Value = serde_json::from_slice(doc).map_err(|e| format!("respons tidak dikenali: {e}"))?;
-        let contests = g["Contests"].as_array().ok_or("daftar kontes tidak dikenali")?;
-        for c in contests {
-            let name = c["C"].as_str().unwrap_or("").trim();
-            enum Which {
-                Sen,
-                House(u32),
+    let mut totals: std::collections::BTreeMap<String, Agg> = std::collections::BTreeMap::new();
+    for (county, bytes) in docs {
+        let value: serde_json::Value = serde_json::from_slice(bytes).map_err(|e| format!("{county}: {e}"))?;
+        let rows = value["Contests"].as_array().ok_or("daftar kontes hilang")?;
+        let mut seen = std::collections::HashSet::new();
+        for c in rows {
+            let title = c["C"].as_str().unwrap_or("").trim();
+            let contest = if senate_re.is_match(title) {
+                "S".to_string()
+            } else if house_re.is_match(title) {
+                if let Some(cap) = district_re.captures(title) {
+                    cap.get(1).or_else(|| cap.get(2)).unwrap().as_str().to_string()
+                } else if matches!(county.replace('_', " ").as_str(), "Cape May" | "Cumberland") {
+                    // The current official ballot roster assigns both whole
+                    // counties to district 2 (unlike explicitly split counties).
+                    "2".to_string()
+                } else { return Err(format!("{county}: distrik belum teridentifikasi: {title}")); }
+            } else { continue; };
+            if !seen.insert(contest.clone()) { return Err(format!("{county}: kontes federal duplikat {contest}")); }
+            let names = c["CH"].as_array().ok_or("nama kandidat hilang")?;
+            let votes = c["V"].as_array().ok_or("suara kandidat hilang")?;
+            let parties = c["P"].as_array().ok_or("partai kandidat hilang")?;
+            if names.is_empty() || names.len() != votes.len() || names.len() != parties.len() {
+                return Err(format!("{county}: kolom kandidat tidak sejajar"));
             }
-            let which = if sen_re.is_match(name) {
-                Which::Sen
-            } else if house_re.is_match(name) {
-                let d: Option<u32> = cd_re
-                    .captures(name)
-                    .or_else(|| nth_re.captures(name))
-                    .and_then(|c| c[1].parse().ok())
-                    .or_else(|| county_default.iter().find(|(c, _)| c.replace('_', " ") == *county).map(|(_, d)| *d));
-                match d {
-                    Some(d) => Which::House(d),
-                    None => continue,
-                }
-            } else {
-                continue;
-            };
-            let agg = match which {
-                Which::Sen => sen.get_or_insert_with(Agg::default),
-                Which::House(d) => houses.entry(d).or_default(),
-            };
-            agg.pr += c["PR"].as_u64().unwrap_or(0) as u32;
-            agg.tp += c["TP"].as_u64().unwrap_or(0) as u32;
-            let names = c["CH"].as_array().cloned().unwrap_or_default();
-            let votes = c["V"].as_array().cloned().unwrap_or_default();
-            let parties = c["P"].as_array().cloned().unwrap_or_default();
+            let a = totals.entry(contest.clone()).or_default();
+            let pr = c["PR"].as_u64().ok_or("PR tidak valid")?;
+            let tp = c["TP"].as_u64().ok_or("TP tidak valid")?;
+            if pr > tp { return Err(format!("{county}: PR melebihi TP")); }
+            a.pr += pr as u32; a.tp += tp as u32;
+            let mut local_input = 0u64; let mut local_output = 0u64;
             for (i, n) in names.iter().enumerate() {
-                let raw = n.as_str().unwrap_or("").trim().to_string();
-                if raw.is_empty() {
-                    continue;
-                }
-                let party = parties
-                    .get(i)
-                    .and_then(|p| p.as_str())
-                    .map(|p| p.trim().to_string())
-                    .filter(|p| !p.is_empty());
-                let (display, prefix_party) = match raw.split_once(' ') {
-                    Some((pre, rest))
-                        if matches!(pre, "DEM" | "REP" | "NPC" | "NPD" | "IND" | "LIB" | "GRN") && !rest.is_empty() =>
-                    {
-                        (rest.to_string(), Some(pre.to_string()))
+                let raw = n.as_str().ok_or("nama kandidat tidak valid")?.trim();
+                let v = votes[i].as_u64().ok_or("angka suara tidak valid")?;
+                local_input += v;
+                let alias = aliases["aliases"].as_array().unwrap().iter().find(|r| r["contest"].as_str()==Some(&contest) && r["raw"].as_str()==Some(raw.to_uppercase().as_str()));
+                if let Some(row) = alias {
+                    let party = Party::classify(row["party"].as_str());
+                    let e = a.candidates.entry(row["name"].as_str().unwrap().to_string()).or_insert((party, 0));
+                    e.1 += v;
+                } else if writein_re.is_match(raw) {
+                    a.write_in += v;
+                } else {
+                    // Unknown named rows retain all votes but cannot be
+                    // treated as write-ins or silently bound to a candidate.
+                    // New party-labelled rows force review of the alias table.
+                    if parties[i].as_str().map(|p| !p.trim().is_empty()).unwrap_or(false) {
+                        return Err(format!("{county}: kandidat berlabel partai belum dipetakan: {raw}"));
                     }
-                    _ => (raw, None),
-                };
-                let key = display.to_uppercase();
-                let v = votes.get(i).and_then(|v| v.as_u64()).unwrap_or(0);
-                let e = agg.candidates.entry(key).or_insert_with(|| CandAgg { display: display.clone(), party: None, votes: 0 });
-                e.votes += v;
-                if e.party.is_none() {
-                    e.party = party.or(prefix_party);
+                    a.unresolved += v;
                 }
-                // Prefer mixed-case display over an all-caps variant.
-                if e.display.chars().all(|c| !c.is_ascii_lowercase()) && display.chars().any(|c| c.is_ascii_lowercase()) {
-                    e.display = display;
-                }
+                local_output += v;
             }
+            if local_input != local_output { return Err(format!("{county}: konservasi suara gagal")); }
+            a.raw_total += local_input;
         }
+        if !seen.contains("S") { return Err(format!("{county}: kontes Senat hilang")); }
     }
-    let build = |mut agg: Agg, label: String, district: Option<u32>| -> Option<Contest> {
-        if agg.candidates.is_empty() {
-            return None;
+    let mut senate = None; let mut house = Vec::new();
+    for (id, a) in totals {
+        let mut candidates: Vec<Candidate> = a.candidates.into_iter().map(|(name,(party,votes))| Candidate{name,party,votes}).collect();
+        if candidates.is_empty() { return Err(format!("kontes {id}: kandidat terverifikasi tidak ditemukan")); }
+        candidates.sort_by(|a,b|b.votes.cmp(&a.votes).then(a.name.cmp(&b.name)));
+        if candidates.iter().map(|c|c.votes).sum::<u64>() + a.write_in + a.unresolved != a.raw_total {
+            return Err(format!("kontes {id}: konservasi suara agregat gagal"));
         }
-        // Counties are inconsistent about given names ("BOOKER" next to "Cory
-        // BOOKER"). Fold a single-token name into the candidate whose last
-        // name it matches.
-        let keys: Vec<String> = agg.candidates.keys().cloned().collect();
-        for key in &keys {
-            if key.contains(' ') {
-                continue;
-            }
-            let targets: Vec<String> = keys
-                .iter()
-                .filter(|k| k.contains(' ') && k.rsplit(' ').next() == Some(key.as_str()))
-                .cloned()
-                .collect();
-            // Merge only when exactly one candidate carries that surname: a
-            // single-token listing is then unambiguously that candidate.
-            let target = if targets.len() == 1 { Some(targets[0].clone()) } else { None };
-            if let Some(t) = target {
-                if let Some(from) = agg.candidates.remove(key) {
-                    let e = agg.candidates.get_mut(&t).unwrap();
-                    e.votes += from.votes;
-                    if e.party.is_none() {
-                        e.party = from.party;
-                    }
-                }
-            }
-        }
-        // Counties that enumerate write-ins list them as party-less names.
-        // Real candidates are the ones at least one county gives a party.
-        // Only source-labelled write-in rows count as write-ins; any other
-        // unresolved name keeps its votes in a separate bucket that can veto
-        // a leader declaration, never re-labelled as a write-in by inference.
-        let wr_re = Regex::new(r"(?i)^write[-\s]?in\b").ok()?;
-        let mut write_in = 0u64;
-        let mut unresolved = 0u64;
-        let mut candidates: Vec<Candidate> = Vec::new();
-        for (_, c) in agg.candidates {
-            match c.party {
-                Some(p) => candidates.push(Candidate { name: c.display, party: Party::classify(Some(&p)), votes: c.votes }),
-                None if wr_re.is_match(&c.display) => write_in += c.votes,
-                None => unresolved += c.votes,
-            }
-        }
-        if candidates.is_empty() {
-            return None;
-        }
-        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
-        Some(Contest {
-            state: cfg.state.clone(),
-            label,
-            district,
-            candidates,
-            write_in,
-            unresolved,
-            precincts: Some((agg.pr, agg.tp)),
-            polling_pct: None,
-        })
-    };
-    let senate = sen.and_then(|a| build(a, "Senat AS".into(), None));
-    let mut house = Vec::new();
-    for (d, agg) in houses {
-        if let Some(c) = build(agg, format!("Distrik {d}"), Some(d)) {
-            house.push(c);
-        }
+        let district = if id == "S" {None} else {Some(id.parse::<u32>().map_err(|_|"distrik tidak valid")?)};
+        let c = Contest{state:cfg.state.clone(),label:district.map(|d|format!("Distrik {d}")).unwrap_or("Senat AS".into()),district,candidates,write_in:a.write_in,unresolved:a.unresolved,precincts:Some((a.pr,a.tp)),polling_pct:None};
+        if id=="S" {senate=Some(c)} else {house.push(c)}
     }
-    Ok((senate, house))
+    house.sort_by_key(|c|c.district);
+    Ok((senate,house))
 }
 
 async fn slot(state: &str) -> Arc<Mutex<Option<Entry>>> {
@@ -1364,7 +1293,8 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             if let Some(Entry { checked, feed: Some(f), .. }) = guard.as_ref() {
                 if checked.elapsed().as_secs() < MAX_STALE_SERVE_SECS {
                     let mut f = f.clone();
-                    f.refresh_note = Some(format!("pembaruan terakhir gagal ({reason}); menampilkan salinan terakhir yang berhasil dibaca"));
+                    let coverage = f.refresh_note.as_deref().map(|n|format!("; {n}")).unwrap_or_default();
+                    f.refresh_note = Some(format!("pembaruan terakhir gagal ({reason}); menampilkan salinan terakhir yang berhasil dibaca{coverage}"));
                     return FeedResult::Ok(f);
                 }
             }

@@ -217,7 +217,7 @@
     {
       "state": "NJ",
       "label": "New Jersey (gabungan 14 dari 21 kabupaten)",
-      "human_url": "https://www.nj.gov/state/elections/election-information-results.shtml",
+      "human_url": "https://www.nj.gov/state/elections/election-night-results.shtml",
       "export_url": "https://results.enr.clarityelections.com/NJ/Atlantic/127487/current_ver.txt",
       "extra_urls": [
         "https://results.enr.clarityelections.com/NJ/Burlington/127582/current_ver.txt",
@@ -236,8 +236,7 @@
       ],
       "senate_exact": [],
       "house_regex": "",
-      "format": "njclarity",
-      "suspended": "atribusi nama kandidat lintas kabupaten sedang diperiksa; variasi nama dapat memecah suara satu kandidat. Hitungan NJ disembunyikan sampai verifikasi selesai, bukan perubahan hasil pemilu"
+      "format": "njclarity"
     }
   ]
 }

@@ -1,0 +1,1766 @@
+[
+  {
+    "county": "Atlantic",
+    "contest": "S",
+    "title": "United States Senate",
+    "raw_total": 92005,
+    "rows": [
+      {
+        "raw": "REP Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 38536,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "DEM Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 51378,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "NPC Veronica FERNANDEZ",
+        "party_raw": "NPC",
+        "votes": 1406,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "NPD Joanne KUNIANSKY",
+        "party_raw": "NPD",
+        "votes": 685,
+        "attribution": "Joanne Kuniansky"
+      }
+    ]
+  },
+  {
+    "county": "Atlantic",
+    "contest": "2",
+    "title": "House of Representatives 2nd Cong",
+    "raw_total": 92277,
+    "rows": [
+      {
+        "raw": "REP Jeff VAN DREW",
+        "party_raw": "REP",
+        "votes": 39902,
+        "attribution": "Jeff Van Drew"
+      },
+      {
+        "raw": "DEM Zack MULLOCK",
+        "party_raw": "DEM",
+        "votes": 51267,
+        "attribution": "Zack Mullock"
+      },
+      {
+        "raw": "NPC Ramon MORA, Jr.",
+        "party_raw": "NPC",
+        "votes": 1108,
+        "attribution": "Ramon Mora Jr."
+      }
+    ]
+  },
+  {
+    "county": "Burlington",
+    "contest": "S",
+    "title": "US Senate",
+    "raw_total": 163770,
+    "rows": [
+      {
+        "raw": "Justin Murphy",
+        "party_raw": "REP",
+        "votes": 53347,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "Cory Booker",
+        "party_raw": "DEM",
+        "votes": 107269,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Joanne Kuniansky",
+        "party_raw": "",
+        "votes": 1318,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Veronica Fernandez",
+        "party_raw": "",
+        "votes": 1698,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "Personal Choice",
+        "party_raw": "",
+        "votes": 120,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Gary Stout",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Heier",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Someone From Out of State",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "William Hunt",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Andy Kim",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Bryce Harper",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Richard tabor",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Thomas Massie",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Free Palestine",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Fred Porter",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Personal",
+        "party_raw": "",
+        "votes": 0,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "God",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Loretta Kelly",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Emily Wallace",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Dawn Fantasia",
+        "party_raw": "",
+        "votes": 0,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Adam Sheridan",
+        "party_raw": "",
+        "votes": 2,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "optimus prime",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Clifford P. Case",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Jeff Van Drew",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      }
+    ]
+  },
+  {
+    "county": "Burlington",
+    "contest": "1",
+    "title": "Member of Congress - 1st Congressional District",
+    "raw_total": 6839,
+    "rows": [
+      {
+        "raw": "Damon Galdo",
+        "party_raw": "REP",
+        "votes": 1833,
+        "attribution": "Damon Galdo"
+      },
+      {
+        "raw": "Donald Norcross",
+        "party_raw": "DEM",
+        "votes": 4980,
+        "attribution": "Donald Norcross"
+      },
+      {
+        "raw": "Personal Choice",
+        "party_raw": "",
+        "votes": 21,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Personal",
+        "party_raw": "",
+        "votes": 0,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Jesus",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Theodore Plush DO",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Lynn Sarsillo",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Emily Wallace",
+        "party_raw": "",
+        "votes": 0,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Simon ",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Brian K Everett",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      }
+    ]
+  },
+  {
+    "county": "Burlington",
+    "contest": "3",
+    "title": "Member of Congress - 3rd Congressional District",
+    "raw_total": 155574,
+    "rows": [
+      {
+        "raw": "Michael P. McGuire",
+        "party_raw": "REP",
+        "votes": 50801,
+        "attribution": "Michael P. McGuire"
+      },
+      {
+        "raw": "Herbert Conaway, Jr.",
+        "party_raw": "DEM",
+        "votes": 101579,
+        "attribution": "Herb Conaway"
+      },
+      {
+        "raw": "Ryan Michael Kelly",
+        "party_raw": "",
+        "votes": 2330,
+        "attribution": "Ryan Michael Kelly"
+      },
+      {
+        "raw": "Steven Welzer",
+        "party_raw": "",
+        "votes": 748,
+        "attribution": "Steven Welzer"
+      },
+      {
+        "raw": "Personal Choice",
+        "party_raw": "",
+        "votes": 98,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Gary Stout",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "William Bishop",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Joseph Koreg Jr. ",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Caileigh Valig",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "James Kuneansky",
+        "party_raw": "",
+        "votes": 0,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Denise Trautmann",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Thomas Massie",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Fred Porter",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Birdi Zasoski",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Aaron Mitchell",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Anna Evans",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Jason Cullen",
+        "party_raw": "",
+        "votes": 4,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Orion Pax",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Fred A. Hartley Jr.",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Kevin Cureton",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Anthony Chigounis",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      }
+    ]
+  },
+  {
+    "county": "Cape_May",
+    "contest": "S",
+    "title": "Member of the United States Senate",
+    "raw_total": 38840,
+    "rows": [
+      {
+        "raw": "REP Justin Murphy",
+        "party_raw": "REP",
+        "votes": 20803,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "DEM Cory Booker",
+        "party_raw": "DEM",
+        "votes": 17497,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Joanne Kuniansky",
+        "party_raw": "",
+        "votes": 208,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Veronica Fernandez",
+        "party_raw": "",
+        "votes": 301,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 31,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Cape_May",
+    "contest": "2",
+    "title": "Member of the House of Representatives",
+    "raw_total": 39880,
+    "rows": [
+      {
+        "raw": "REP Jeff Van Drew",
+        "party_raw": "REP",
+        "votes": 21805,
+        "attribution": "Jeff Van Drew"
+      },
+      {
+        "raw": "DEM Zack Mullock",
+        "party_raw": "DEM",
+        "votes": 17856,
+        "attribution": "Zack Mullock"
+      },
+      {
+        "raw": "Ramon Mora, Jr.",
+        "party_raw": "",
+        "votes": 192,
+        "attribution": "Ramon Mora Jr."
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 27,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Cumberland",
+    "contest": "S",
+    "title": "United States Senator",
+    "raw_total": 37766,
+    "rows": [
+      {
+        "raw": "Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 21394,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 15538,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "Joanne KUNIANSKY",
+        "party_raw": "SOC",
+        "votes": 250,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Veronica FERNANDEZ",
+        "party_raw": "",
+        "votes": 555,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "Write-In",
+        "party_raw": "",
+        "votes": 27,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      },
+      {
+        "raw": "Eduardo Castille",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Shawn Riggins",
+        "party_raw": "",
+        "votes": 0,
+        "attribution": "UNRESOLVED"
+      },
+      {
+        "raw": "Geoff Rickly",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      }
+    ]
+  },
+  {
+    "county": "Cumberland",
+    "contest": "2",
+    "title": "United States House of Representatives",
+    "raw_total": 37836,
+    "rows": [
+      {
+        "raw": "Zack MULLOCK",
+        "party_raw": "DEM",
+        "votes": 21207,
+        "attribution": "Zack Mullock"
+      },
+      {
+        "raw": "Jeff VAN DREW",
+        "party_raw": "REP",
+        "votes": 16143,
+        "attribution": "Jeff Van Drew"
+      },
+      {
+        "raw": "Ramon MORA, Jr.",
+        "party_raw": "",
+        "votes": 472,
+        "attribution": "Ramon Mora Jr."
+      },
+      {
+        "raw": "Write-In",
+        "party_raw": "",
+        "votes": 13,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      },
+      {
+        "raw": "Tim Alexander",
+        "party_raw": "",
+        "votes": 1,
+        "attribution": "UNRESOLVED"
+      }
+    ]
+  },
+  {
+    "county": "Essex",
+    "contest": "S",
+    "title": "United States Senator",
+    "raw_total": 208804,
+    "rows": [
+      {
+        "raw": "Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 37185,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 166100,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Joanne KUNIANSKY",
+        "party_raw": "",
+        "votes": 2588,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Veronica FERNANDEZ",
+        "party_raw": "",
+        "votes": 2931,
+        "attribution": "Veronica Fernandez"
+      }
+    ]
+  },
+  {
+    "county": "Essex",
+    "contest": "8",
+    "title": "Member of the House of Representatives (8th Congressional District)",
+    "raw_total": 11906,
+    "rows": [
+      {
+        "raw": "Rob MENENDEZ",
+        "party_raw": "DEM",
+        "votes": 11050,
+        "attribution": "Rob Menendez"
+      },
+      {
+        "raw": "Aristotle ELIOPOULOS",
+        "party_raw": "",
+        "votes": 310,
+        "attribution": "Aristotle Eliopoulos"
+      },
+      {
+        "raw": "Da'Shone HUGHEY",
+        "party_raw": "",
+        "votes": 335,
+        "attribution": "Da'Shone Hughey"
+      },
+      {
+        "raw": "Craig HONTS",
+        "party_raw": "",
+        "votes": 211,
+        "attribution": "Craig Honts"
+      }
+    ]
+  },
+  {
+    "county": "Essex",
+    "contest": "10",
+    "title": "Member of the House of Representatives (10th Congressional District)",
+    "raw_total": 91723,
+    "rows": [
+      {
+        "raw": "Carmen BUCCO",
+        "party_raw": "REP",
+        "votes": 9893,
+        "attribution": "Carmen Bucco"
+      },
+      {
+        "raw": "LaMonica R. McIVER",
+        "party_raw": "DEM",
+        "votes": 81830,
+        "attribution": "LaMonica R. McIver"
+      }
+    ]
+  },
+  {
+    "county": "Essex",
+    "contest": "11",
+    "title": "Member of the House of Representatives (11th Congressional District)",
+    "raw_total": 99858,
+    "rows": [
+      {
+        "raw": "Joe HATHAWAY",
+        "party_raw": "REP",
+        "votes": 28776,
+        "attribution": "Joe Hathaway"
+      },
+      {
+        "raw": "Analilia MEJIA",
+        "party_raw": "DEM",
+        "votes": 70082,
+        "attribution": "Analilia Mejia"
+      },
+      {
+        "raw": "Alan B. BOND",
+        "party_raw": "",
+        "votes": 1000,
+        "attribution": "Alan B. Bond"
+      }
+    ]
+  },
+  {
+    "county": "Gloucester",
+    "contest": "S",
+    "title": "US SENATE",
+    "raw_total": 59784,
+    "rows": [
+      {
+        "raw": "CORY BOOKER",
+        "party_raw": "DEM",
+        "votes": 39060,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "JUSTIN MURPHY",
+        "party_raw": "REP",
+        "votes": 19660,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "JOANNE KUNIANSKY",
+        "party_raw": "",
+        "votes": 397,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "VERONICA FERNANDEZ",
+        "party_raw": "",
+        "votes": 590,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 77,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Gloucester",
+    "contest": "1",
+    "title": "HOUSE OF REPRESENTATIVES - CD 1",
+    "raw_total": 42882,
+    "rows": [
+      {
+        "raw": "DONALD NORCROSS",
+        "party_raw": "DEM",
+        "votes": 29025,
+        "attribution": "Donald Norcross"
+      },
+      {
+        "raw": "DAMON GALDO",
+        "party_raw": "REP",
+        "votes": 13747,
+        "attribution": "Damon Galdo"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 110,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Gloucester",
+    "contest": "2",
+    "title": "HOUSE OF REPRESENTATIVES - CD 2",
+    "raw_total": 16592,
+    "rows": [
+      {
+        "raw": "ZACK MULLOCK",
+        "party_raw": "DEM",
+        "votes": 10415,
+        "attribution": "Zack Mullock"
+      },
+      {
+        "raw": "JEFF VAN DREW",
+        "party_raw": "REP",
+        "votes": 6050,
+        "attribution": "Jeff Van Drew"
+      },
+      {
+        "raw": "RAMON MORA JR.",
+        "party_raw": "",
+        "votes": 117,
+        "attribution": "Ramon Mora Jr."
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 10,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Hudson",
+    "contest": "S",
+    "title": "United States Senator",
+    "raw_total": 146352,
+    "rows": [
+      {
+        "raw": "JUSTIN MURPHY",
+        "party_raw": "REP",
+        "votes": 25844,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "CORY BOOKER",
+        "party_raw": "DEM",
+        "votes": 112645,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "VERONICA FERNANDEZ",
+        "party_raw": "N-C",
+        "votes": 4261,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "JOANNE KUNIANSKY",
+        "party_raw": "N-D",
+        "votes": 3084,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Write-In Vote",
+        "party_raw": "",
+        "votes": 518,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Hudson",
+    "contest": "8",
+    "title": "Member of the House of Representatives- 8th Congressional",
+    "raw_total": 93599,
+    "rows": [
+      {
+        "raw": "ROB MENENDEZ",
+        "party_raw": "DEM",
+        "votes": 81314,
+        "attribution": "Rob Menendez"
+      },
+      {
+        "raw": "CRAIG HONTS",
+        "party_raw": "N-D",
+        "votes": 4557,
+        "attribution": "Craig Honts"
+      },
+      {
+        "raw": "ARISTOTLE ELIOPOULOS",
+        "party_raw": "N-E",
+        "votes": 4322,
+        "attribution": "Aristotle Eliopoulos"
+      },
+      {
+        "raw": "Da'SHONE HUGHEY",
+        "party_raw": "N-F",
+        "votes": 2610,
+        "attribution": "Da'Shone Hughey"
+      },
+      {
+        "raw": "Write-In Vote",
+        "party_raw": "",
+        "votes": 796,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Hudson",
+    "contest": "9",
+    "title": "Member of the House of Representatives- 9th Congressional",
+    "raw_total": 12888,
+    "rows": [
+      {
+        "raw": "ROSIE PINO",
+        "party_raw": "REP",
+        "votes": 3878,
+        "attribution": "Rosie Pino"
+      },
+      {
+        "raw": "NELIDA POU",
+        "party_raw": "DEM",
+        "votes": 8786,
+        "attribution": "Nelida Pou"
+      },
+      {
+        "raw": "TERRISA BUKOVINAC",
+        "party_raw": "N-E",
+        "votes": 195,
+        "attribution": "Terrisa Bukovinac"
+      },
+      {
+        "raw": "Write-In Vote",
+        "party_raw": "",
+        "votes": 29,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Hudson",
+    "contest": "10",
+    "title": "Member of the House of Representatives- 10th Congressional",
+    "raw_total": 24190,
+    "rows": [
+      {
+        "raw": "CARMEN BUCCO",
+        "party_raw": "REP",
+        "votes": 3035,
+        "attribution": "Carmen Bucco"
+      },
+      {
+        "raw": "LaMONICA R. McIVER",
+        "party_raw": "DEM",
+        "votes": 21066,
+        "attribution": "LaMonica R. McIver"
+      },
+      {
+        "raw": "Write-In Vote",
+        "party_raw": "",
+        "votes": 89,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Mercer",
+    "contest": "S",
+    "title": "U.S. Senate",
+    "raw_total": 111813,
+    "rows": [
+      {
+        "raw": "Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 83017,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 25472,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "Veronica FERNANDEZ",
+        "party_raw": "",
+        "votes": 2065,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "Joanne KUNIANSKY",
+        "party_raw": "",
+        "votes": 1115,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 144,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Mercer",
+    "contest": "3",
+    "title": "U.S. House of Representatives - 3rd Congressional District",
+    "raw_total": 56915,
+    "rows": [
+      {
+        "raw": "Herb CONAWAY",
+        "party_raw": "DEM",
+        "votes": 38935,
+        "attribution": "Herb Conaway"
+      },
+      {
+        "raw": "Michael P. McGUIRE",
+        "party_raw": "REP",
+        "votes": 16805,
+        "attribution": "Michael P. McGuire"
+      },
+      {
+        "raw": "Steven WELZER",
+        "party_raw": "",
+        "votes": 493,
+        "attribution": "Steven Welzer"
+      },
+      {
+        "raw": "Ryan Michael KELLY",
+        "party_raw": "",
+        "votes": 643,
+        "attribution": "Ryan Michael Kelly"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 39,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Mercer",
+    "contest": "12",
+    "title": "U.S. House of Representatives - 12th Congressional District",
+    "raw_total": 53000,
+    "rows": [
+      {
+        "raw": "Adam HAMAWY",
+        "party_raw": "DEM",
+        "votes": 42201,
+        "attribution": "Adam Hamawy"
+      },
+      {
+        "raw": "Gregg MELE",
+        "party_raw": "REP",
+        "votes": 9418,
+        "attribution": "Gregg Mele"
+      },
+      {
+        "raw": "Winston JORDAN",
+        "party_raw": "",
+        "votes": 697,
+        "attribution": "Winston Jordan"
+      },
+      {
+        "raw": "Andres JINETE",
+        "party_raw": "",
+        "votes": 531,
+        "attribution": "Andres Jinete"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 153,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Middlesex",
+    "contest": "S",
+    "title": "U.S. Senator",
+    "raw_total": 237392,
+    "rows": [
+      {
+        "raw": "Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 156086,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 72991,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "Veronica FERNANDEZ",
+        "party_raw": "IND",
+        "votes": 4804,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "Joanne KUNIANSKY",
+        "party_raw": "SWP",
+        "votes": 2855,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 656,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Middlesex",
+    "contest": "6",
+    "title": "House of Representatives CD6",
+    "raw_total": 130323,
+    "rows": [
+      {
+        "raw": "Frank PALLONE, Jr.",
+        "party_raw": "DEM",
+        "votes": 95123,
+        "attribution": "Frank Pallone Jr."
+      },
+      {
+        "raw": "Hillary HERZIG",
+        "party_raw": "REP",
+        "votes": 34577,
+        "attribution": "Hillary Herzig"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 623,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Middlesex",
+    "contest": "12",
+    "title": "House of Representatives CD12",
+    "raw_total": 106147,
+    "rows": [
+      {
+        "raw": "Adam HAMAWY",
+        "party_raw": "DEM",
+        "votes": 65999,
+        "attribution": "Adam Hamawy"
+      },
+      {
+        "raw": "Gregg MELE",
+        "party_raw": "REP",
+        "votes": 38514,
+        "attribution": "Gregg Mele"
+      },
+      {
+        "raw": "Winston JORDAN",
+        "party_raw": "IND",
+        "votes": 685,
+        "attribution": "Winston Jordan"
+      },
+      {
+        "raw": "Andres JINETE",
+        "party_raw": "GRE",
+        "votes": 614,
+        "attribution": "Andres Jinete"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 335,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Monmouth",
+    "contest": "S",
+    "title": "US Senate",
+    "raw_total": 232040,
+    "rows": [
+      {
+        "raw": "Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 120178,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 107035,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "Veronica FERNANDEZ",
+        "party_raw": "",
+        "votes": 3084,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "Joanne KUNIANSKY",
+        "party_raw": "",
+        "votes": 1446,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Write-In",
+        "party_raw": "",
+        "votes": 297,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Monmouth",
+    "contest": "3",
+    "title": "US House of Representatives 3rd Congressional District",
+    "raw_total": 58496,
+    "rows": [
+      {
+        "raw": "Herb CONAWAY",
+        "party_raw": "DEM",
+        "votes": 28522,
+        "attribution": "Herb Conaway"
+      },
+      {
+        "raw": "Michael P. McGUIRE",
+        "party_raw": "REP",
+        "votes": 28933,
+        "attribution": "Michael P. McGuire"
+      },
+      {
+        "raw": "Steven WELZER",
+        "party_raw": "",
+        "votes": 400,
+        "attribution": "Steven Welzer"
+      },
+      {
+        "raw": "Ryan Michael KELLY",
+        "party_raw": "",
+        "votes": 591,
+        "attribution": "Ryan Michael Kelly"
+      },
+      {
+        "raw": "Write-In",
+        "party_raw": "",
+        "votes": 50,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Monmouth",
+    "contest": "4",
+    "title": "US House of Representatives 4th Congressional District",
+    "raw_total": 94703,
+    "rows": [
+      {
+        "raw": "Rachel PEACE",
+        "party_raw": "DEM",
+        "votes": 44819,
+        "attribution": "Rachel Peace"
+      },
+      {
+        "raw": "Christopher H. SMITH",
+        "party_raw": "REP",
+        "votes": 49765,
+        "attribution": "Christopher H. Smith"
+      },
+      {
+        "raw": "Write-In",
+        "party_raw": "",
+        "votes": 119,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Monmouth",
+    "contest": "6",
+    "title": "US House of Representatives 6th Congressional District",
+    "raw_total": 78429,
+    "rows": [
+      {
+        "raw": "Frank PALLONE Jr.",
+        "party_raw": "DEM",
+        "votes": 48466,
+        "attribution": "Frank Pallone Jr."
+      },
+      {
+        "raw": "Hillary HERZIG",
+        "party_raw": "REP",
+        "votes": 29768,
+        "attribution": "Hillary Herzig"
+      },
+      {
+        "raw": "Write-In",
+        "party_raw": "",
+        "votes": 195,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Morris",
+    "contest": "S",
+    "title": "UNITED STATES SENATE",
+    "raw_total": 193873,
+    "rows": [
+      {
+        "raw": "Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 82820,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 106354,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "Joanne KUNIANSKY",
+        "party_raw": "NM3",
+        "votes": 1724,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Veronica FERNANDEZ",
+        "party_raw": "NM4",
+        "votes": 2674,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 301,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Morris",
+    "contest": "7",
+    "title": "HOUSE OF REPRESENTATIVES 7TH CONGRESSIONAL",
+    "raw_total": 49259,
+    "rows": [
+      {
+        "raw": "Thomas H. KEAN, JR.",
+        "party_raw": "REP",
+        "votes": 21761,
+        "attribution": "Thomas H. Kean Jr."
+      },
+      {
+        "raw": "Rebecca BENNETT",
+        "party_raw": "DEM",
+        "votes": 26656,
+        "attribution": "Rebecca Bennett"
+      },
+      {
+        "raw": "Seamus Patrick O'TOOLE",
+        "party_raw": "NM3",
+        "votes": 770,
+        "attribution": "Seamus Patrick O'Toole"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 72,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Morris",
+    "contest": "11",
+    "title": "HOUSE OF REPRESENTATIVES 11TH CONGRESSIONAL",
+    "raw_total": 144060,
+    "rows": [
+      {
+        "raw": "Joe HATHAWAY",
+        "party_raw": "REP",
+        "votes": 63730,
+        "attribution": "Joe Hathaway"
+      },
+      {
+        "raw": "Analilia MEJIA",
+        "party_raw": "DEM",
+        "votes": 78841,
+        "attribution": "Analilia Mejia"
+      },
+      {
+        "raw": "Alan B. BOND",
+        "party_raw": "NM3",
+        "votes": 1157,
+        "attribution": "Alan B. Bond"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 332,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Ocean",
+    "contest": "S",
+    "title": "MEMBER OF THE UNITED STATES SENATE",
+    "raw_total": 211644,
+    "rows": [
+      {
+        "raw": "REP Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 113337,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "DEM Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 94101,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "IND Veronica FERNANDEZ",
+        "party_raw": "NOC",
+        "votes": 2662,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "IND Joanne KUNIANSKY",
+        "party_raw": "NOD",
+        "votes": 1234,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 310,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Ocean",
+    "contest": "2",
+    "title": "HOUSE OF REPRESENTATIVES 2ND CONGRESSIONAL DISTRICT",
+    "raw_total": 45331,
+    "rows": [
+      {
+        "raw": "REP Jeff VAN DREW",
+        "party_raw": "REP",
+        "votes": 26114,
+        "attribution": "Jeff Van Drew"
+      },
+      {
+        "raw": "DEM Zack MULLOCK",
+        "party_raw": "DEM",
+        "votes": 18740,
+        "attribution": "Zack Mullock"
+      },
+      {
+        "raw": "IND Ramon MORA, JR.",
+        "party_raw": "NOC",
+        "votes": 448,
+        "attribution": "Ramon Mora Jr."
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 29,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Ocean",
+    "contest": "4",
+    "title": "HOUSE OF REPRESENTATIVES 4TH CONGRESSIONAL DISTRICT",
+    "raw_total": 167125,
+    "rows": [
+      {
+        "raw": "REP Christopher H. SMITH",
+        "party_raw": "REP",
+        "votes": 104836,
+        "attribution": "Christopher H. Smith"
+      },
+      {
+        "raw": "DEM Rachel PEACE",
+        "party_raw": "DEM",
+        "votes": 62092,
+        "attribution": "Rachel Peace"
+      },
+      {
+        "raw": "WRITE-IN",
+        "party_raw": "",
+        "votes": 197,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Passaic",
+    "contest": "S",
+    "title": "Member of the United States Senate",
+    "raw_total": 131689,
+    "rows": [
+      {
+        "raw": "REP Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 45097,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "DEM Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 81830,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "NMC Veronica FERNANDEZ",
+        "party_raw": "NMC",
+        "votes": 3080,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "NMD Joanne KUNIANSKY",
+        "party_raw": "NMD",
+        "votes": 1395,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Write-In-Vote",
+        "party_raw": "",
+        "votes": 287,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Passaic",
+    "contest": "5",
+    "title": "Member of the House of Reps - 5th Cong",
+    "raw_total": 21267,
+    "rows": [
+      {
+        "raw": "REP Sean KIRRANE",
+        "party_raw": "REP",
+        "votes": 9855,
+        "attribution": "Sean Kirrane"
+      },
+      {
+        "raw": "DEM Josh GOTTHEIMER",
+        "party_raw": "DEM",
+        "votes": 10897,
+        "attribution": "Josh Gottheimer"
+      },
+      {
+        "raw": "NMC Adam RUEDA",
+        "party_raw": "NMC",
+        "votes": 492,
+        "attribution": "Adam Rueda"
+      },
+      {
+        "raw": "Write-In-Vote",
+        "party_raw": "",
+        "votes": 23,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Passaic",
+    "contest": "9",
+    "title": "Member of the House of Reps - 9th Cong",
+    "raw_total": 82230,
+    "rows": [
+      {
+        "raw": "REP Rosie PINO",
+        "party_raw": "REP",
+        "votes": 21077,
+        "attribution": "Rosie Pino"
+      },
+      {
+        "raw": "DEM Nelida POU",
+        "party_raw": "DEM",
+        "votes": 59519,
+        "attribution": "Nelida Pou"
+      },
+      {
+        "raw": "NMC Terrisa BUKOVINAC",
+        "party_raw": "NMC",
+        "votes": 1415,
+        "attribution": "Terrisa Bukovinac"
+      },
+      {
+        "raw": "Write-In-Vote",
+        "party_raw": "",
+        "votes": 219,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Passaic",
+    "contest": "11",
+    "title": "Member of the House of Reps - 11th Cong",
+    "raw_total": 26372,
+    "rows": [
+      {
+        "raw": "REP Joe HATHAWAY",
+        "party_raw": "REP",
+        "votes": 12473,
+        "attribution": "Joe Hathaway"
+      },
+      {
+        "raw": "DEM Analilia MEJIA",
+        "party_raw": "DEM",
+        "votes": 13605,
+        "attribution": "Analilia Mejia"
+      },
+      {
+        "raw": "NMC Alan B. BOND",
+        "party_raw": "NMC",
+        "votes": 262,
+        "attribution": "Alan B. Bond"
+      },
+      {
+        "raw": "Write-In-Vote",
+        "party_raw": "",
+        "votes": 32,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Union",
+    "contest": "S",
+    "title": "United States Senator",
+    "raw_total": 172114,
+    "rows": [
+      {
+        "raw": "DEM Cory BOOKER",
+        "party_raw": "DEM",
+        "votes": 122348,
+        "attribution": "Cory Booker"
+      },
+      {
+        "raw": "REP Justin MURPHY",
+        "party_raw": "REP",
+        "votes": 44569,
+        "attribution": "Justin Murphy"
+      },
+      {
+        "raw": "NON Veronica FERNANDEZ",
+        "party_raw": "",
+        "votes": 3294,
+        "attribution": "Veronica Fernandez"
+      },
+      {
+        "raw": "NON Joanne KUNIANSKY",
+        "party_raw": "",
+        "votes": 1478,
+        "attribution": "Joanne Kuniansky"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 425,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Union",
+    "contest": "7",
+    "title": "Member of House of Representatives 7th Congressional District",
+    "raw_total": 82732,
+    "rows": [
+      {
+        "raw": "DEM Rebecca BENNETT",
+        "party_raw": "DEM",
+        "votes": 54567,
+        "attribution": "Rebecca Bennett"
+      },
+      {
+        "raw": "REP Thomas H. KEAN, JR.",
+        "party_raw": "REP",
+        "votes": 26770,
+        "attribution": "Thomas H. Kean Jr."
+      },
+      {
+        "raw": "NON Seamus Patrick O'TOOLE",
+        "party_raw": "",
+        "votes": 1269,
+        "attribution": "Seamus Patrick O'Toole"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 126,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Union",
+    "contest": "8",
+    "title": "Member of House of Representatives 8th Congressional District",
+    "raw_total": 15936,
+    "rows": [
+      {
+        "raw": "DEM Rob MENENDEZ",
+        "party_raw": "DEM",
+        "votes": 14453,
+        "attribution": "Rob Menendez"
+      },
+      {
+        "raw": "NON Da'Shone HUGHEY",
+        "party_raw": "",
+        "votes": 627,
+        "attribution": "Da'Shone Hughey"
+      },
+      {
+        "raw": "NON Craig HONTS",
+        "party_raw": "",
+        "votes": 324,
+        "attribution": "Craig Honts"
+      },
+      {
+        "raw": "NON Aristotle ELIOPOULOS",
+        "party_raw": "",
+        "votes": 441,
+        "attribution": "Aristotle Eliopoulos"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 91,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Union",
+    "contest": "10",
+    "title": "Member of House of Representatives 10th Congressional District",
+    "raw_total": 58209,
+    "rows": [
+      {
+        "raw": "DEM LaMonica R. MCIVER",
+        "party_raw": "DEM",
+        "votes": 43803,
+        "attribution": "LaMonica R. McIver"
+      },
+      {
+        "raw": "REP Carmen BUCCO",
+        "party_raw": "REP",
+        "votes": 14264,
+        "attribution": "Carmen Bucco"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 142,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  },
+  {
+    "county": "Union",
+    "contest": "12",
+    "title": "Member of House of Representatives 12th Congressional District",
+    "raw_total": 10220,
+    "rows": [
+      {
+        "raw": "DEM Adam HAMAWY",
+        "party_raw": "DEM",
+        "votes": 9237,
+        "attribution": "Adam Hamawy"
+      },
+      {
+        "raw": "REP Gregg MELE",
+        "party_raw": "REP",
+        "votes": 745,
+        "attribution": "Gregg Mele"
+      },
+      {
+        "raw": "NON Andres JINETE",
+        "party_raw": "",
+        "votes": 112,
+        "attribution": "Andres Jinete"
+      },
+      {
+        "raw": "NON Winston JORDAN",
+        "party_raw": "",
+        "votes": 93,
+        "attribution": "Winston Jordan"
+      },
+      {
+        "raw": "Write-in",
+        "party_raw": "",
+        "votes": 33,
+        "attribution": "SOURCE_LABELLED_WRITE_IN"
+      }
+    ]
+  }
+]

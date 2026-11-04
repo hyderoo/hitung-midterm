@@ -1,0 +1,72 @@
+[
+  {
+    "county": "Atlantic",
+    "sha256": "6a39c764fe324b668f47c6b02cb42360c02bb6f24763745024e6e16d7387ad56",
+    "contests": 65
+  },
+  {
+    "county": "Burlington",
+    "sha256": "153e726b0af455e175b194845a0927d398fa922ad9288d093c5213656f68e079",
+    "contests": 135
+  },
+  {
+    "county": "Cape_May",
+    "sha256": "9965f675a93fc971c8b37c59f70f20cf6ff8cc53666e702407f00fa112ee06f0",
+    "contests": 38
+  },
+  {
+    "county": "Cumberland",
+    "sha256": "9602d987ead0868894c28b4c5b05fe9c0888bfdc5f5ef2550b4cc7b48dfaef12",
+    "contests": 43
+  },
+  {
+    "county": "Essex",
+    "sha256": "5a92c8d9adc0ea7dc9335c546fe1321831497bca33a2a4878e22ab8b01e961f0",
+    "contests": 55
+  },
+  {
+    "county": "Gloucester",
+    "sha256": "9692cac8bea0f37cd77867f8388f70cb6edfe3a830aea1e5e9edbf60570c9359",
+    "contests": 78
+  },
+  {
+    "county": "Hudson",
+    "sha256": "5e0ed1b659149a65ff1b13b1ace5ad461a037cc7cbf2bed0eb9bfa96f3b3825e",
+    "contests": 39
+  },
+  {
+    "county": "Mercer",
+    "sha256": "6e4545138893c06b5ef17d1190f41ce41358ab07ffef2e949bdc97c88b625eb5",
+    "contests": 38
+  },
+  {
+    "county": "Middlesex",
+    "sha256": "2d8930478bf7c3666c3ff86b0edadeaf5435543bd22e6147ba24e509c05c1ec6",
+    "contests": 65
+  },
+  {
+    "county": "Monmouth",
+    "sha256": "a0c23e925dd493ff853f7aa1b3352b6768bf18e7ab1da86e00b1ce364afcf1ea",
+    "contests": 148
+  },
+  {
+    "county": "Morris",
+    "sha256": "623ff463adf90fd4ab56cba07e58dd7ff0cfcfeac927a041661be13ae08f01c7",
+    "contests": 106
+  },
+  {
+    "county": "Ocean",
+    "sha256": "901fb5c51a75460c9233a3995a530a4bb90a7ad4f0e7a3be75f3074645d31a89",
+    "contests": 93
+  },
+  {
+    "county": "Union",
+    "sha256": "bfcc5bb0f281af9b38c47e6435fd04bc782fb8481477669c796592efd2dacae1",
+    "contests": 72
+  },
+  {
+    "county": "Passaic",
+    "sha256": "3e38461442cade28a3d671a9c3f7798d02df0636a782821b3c332e9e1a42526f",
+    "contests": 51
+  }
+]

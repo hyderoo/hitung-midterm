@@ -369,6 +369,9 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
     let nfail = feeds.iter().filter(|f| matches!(f, FeedResult::Failed { .. })).count();
     let unavail = if nfail > 0 { format!(" {nfail} sumber yang sebelumnya tersambung sedang tidak tersedia; itu bukan perubahan hasil (lihat daftar di bawah).") } else { String::new() };
     let _ = write!(o, "<div class=\"box covnote\"><b>Baca peta ini dengan hati-hati.</b> Warna di tab ini hanya muncul untuk {nconn} negara bagian yang hasil {kind} sudah tersambung. Abu-abu berarti belum ada data yang tersambung, bukan Republik atau Demokrat kalah atau menang. Peta ini belum mewakili keseimbangan nasional.{unavail}</div>");
+    if feeds_ok(feeds).any(|f|f.state=="NJ") {
+        o.push_str("<p class=\"sub\">New Jersey: hanya gabungan kabupaten yang tercakup, bukan seluruh negara bagian. Urutan suara dapat berbeda setelah kabupaten lain masuk. Lihat jumlah kabupaten, cakupan TPS, dan cap waktu tiap kabupaten di rincian sumber NJ.</p>");
+    }
     o.push_str("<div class=\"grid\"><section class=\"mapcol\">");
     o.push_str(&map_svg(reference, feeds, proj, view));
     // legend
@@ -540,7 +543,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             o.push_str("<details><summary>Rincian per distrik</summary>");
             for c in &f.house {
                 let _ = write!(o, "<div class=\"dist\"><b>{}</b><small class=\"mute\">{}</small>", esc(&c.label), lead_text(c.lead()));
-                for cand in c.candidates.iter().take(3) {
+                for cand in &c.candidates {
                     o.push_str(&cand_line(cand));
                 }
                 if c.write_in > 0 {

@@ -477,7 +477,7 @@ fn nj_merges_county_sum_json() {
 
 
 #[test]
-fn nj_ambiguous_surname_is_not_merged_and_partyless_votes_kept_as_write_in() {
+fn nj_unmapped_names_are_unresolved_not_write_in() {
     let cfg = SourceCfg {
         state: "NJ".into(),
         label: "New Jersey".into(),
@@ -491,14 +491,14 @@ fn nj_ambiguous_surname_is_not_merged_and_partyless_votes_kept_as_write_in() {
         head_regex: None,
     };
     let doc = br#"{ "Contests" : [ { "C" : "US Senate", "PR" : 3, "TP" : 3,
-        "CH" : [ "John SMITH", "Bob SMITH", "SMITH", "WRITE-IN" ],
+        "CH" : [ "Cory Booker", "Justin Murphy", "BOOKER", "WRITE-IN" ],
         "P" : [ "DEM", "REP", "", "" ],
         "V" : [ 100, 50, 7, 3 ] } ] }"#;
     let docs = vec![("Atlantic".to_string(), doc.to_vec())];
     let (senate, _) = njclarity_merge(&docs, &cfg).unwrap();
     let s = senate.expect("senate");
     assert_eq!(s.candidates.len(), 2);
-    assert_eq!(s.candidates[0].name, "John SMITH");
+    assert_eq!(s.candidates[0].name, "Cory Booker");
     // Only the source-labelled "WRITE-IN" row counts as a write-in. The
     // ambiguous "SMITH" row is not attributed to either Smith and is NOT
     // re-labelled a write-in; its votes sit in the unresolved bucket. Margin
@@ -552,4 +552,41 @@ fn sd_source_badge_does_not_remove_candidate_or_make_winner_call() {
     assert_eq!(f.senate.as_ref().unwrap().lead(), Lead::Ahead(Party::Rep));
     let broken = include_str!("fixtures/sd_current_badge.html").replace("display-results-box-f", "changed-layout");
     assert!(parse_orsos(&broken, &cfg).is_err());
+}
+
+#[test]
+fn nj_all_fourteen_counties_match_reviewed_ballot_aliases_and_conserve_votes() {
+    let cfg = SourceCfg {state:"NJ".into(), ..cfg()};
+    let expected: serde_json::Value = serde_json::from_str(include_str!("fixtures/nj_counties/expected-audit.json")).unwrap();
+    let counties = ["Atlantic","Burlington","Cape_May","Cumberland","Essex","Gloucester","Hudson","Mercer","Middlesex","Monmouth","Morris","Ocean","Union","Passaic"];
+    let mut docs = Vec::new();
+    let mut total_in = 0;
+    for county in counties {
+        let body = std::fs::read(format!("tests/fixtures/nj_counties/{county}.json")).unwrap();
+        let one = vec![(county.to_string(),body.clone())];
+        let (sen,house) = njclarity_merge(&one,&cfg).unwrap();
+        let out = sen.into_iter().chain(house).collect::<Vec<_>>();
+        let rows: Vec<_> = expected.as_array().unwrap().iter().filter(|r|r["county"]==county).collect();
+        assert_eq!(rows.len(),out.len(),"county {county}: every federal contest must be present");
+        for row in rows {
+            let id=row["contest"].as_str().unwrap();
+            let c=out.iter().find(|c| if id=="S" {c.district.is_none()} else {c.district==id.parse().ok()}).unwrap();
+            let raw=row["raw_total"].as_u64().unwrap(); total_in+=raw;
+            assert_eq!(c.candidates.iter().map(|x|x.votes).sum::<u64>()+c.write_in+c.unresolved,raw,"{county} {id}");
+            for candidate in &c.candidates {
+                let wanted: u64=row["rows"].as_array().unwrap().iter().filter(|r|r["attribution"]==candidate.name).map(|r|r["votes"].as_u64().unwrap()).sum();
+                assert_eq!(candidate.votes,wanted,"{county} {id} {}",candidate.name);
+            }
+        }
+        docs.push((county.to_string(),body));
+    }
+    let (sen,house)=njclarity_merge(&docs,&cfg).unwrap();
+    assert_eq!(house.len(),12);
+    let s=sen.unwrap();assert_eq!(s.candidates.len(),4);
+    assert_eq!(s.candidates[0].name,"Cory Booker");assert_eq!(s.candidates[0].votes,1279257);
+    let d3=house.iter().find(|c|c.district==Some(3)).unwrap();
+    assert_eq!(d3.candidates.len(),4);assert_eq!(d3.candidates[0].name,"Herb Conaway");assert_eq!(d3.candidates[0].votes,169036);
+    assert_eq!(d3.candidates.iter().find(|c|c.name=="Ryan Michael Kelly").unwrap().votes,3564);
+    let d6=house.iter().find(|c|c.district==Some(6)).unwrap();assert_eq!(d6.candidates.len(),2);assert_eq!(d6.candidates[0].votes,143589);
+    assert_eq!(s.candidates.iter().map(|x|x.votes).sum::<u64>()+s.write_in+s.unresolved+house.iter().map(|c|c.candidates.iter().map(|x|x.votes).sum::<u64>()+c.write_in+c.unresolved).sum::<u64>(),total_in);
 }
