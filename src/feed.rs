@@ -660,6 +660,64 @@ pub async fn parse_inenr(client: &reqwest::Client, settings: &[u8], cfg: &Source
 }
 
 
+
+/// Delaware official results via the state open-data portal (Socrata). The
+/// ENR page elections.delaware.gov/results/enr/GE2026.html links this exact
+/// query. One row per candidate with statewide totals; data_as_of is Eastern
+/// time (UTC-5 after the Nov 1 2026 DST change).
+pub fn parse_desocrata(bytes: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    use chrono::{FixedOffset, NaiveDateTime, TimeZone};
+    let rows: serde_json::Value = serde_json::from_slice(bytes).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+    let rows = rows.as_array().ok_or("respons tidak dikenali: bukan daftar")?;
+    let house_re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let mut latest = "";
+    for r in rows {
+        let t = r["data_as_of"].as_str().unwrap_or("");
+        if t > latest {
+            latest = t;
+        }
+    }
+    if latest.is_empty() {
+        return Err("waktu sumber tidak tercantum".into());
+    }
+    let naive = NaiveDateTime::parse_from_str(latest, "%Y-%m-%dT%H:%M:%S%.f").map_err(|e| e.to_string())?;
+    let source_time = FixedOffset::west_opt(5 * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
+    let mut senate = None;
+    let mut house = Vec::new();
+    for r in rows {
+        let office = r["office"].as_str().unwrap_or("").trim();
+        let is_sen = cfg.senate_exact.iter().any(|n| n == office);
+        let cap = house_re.captures(office);
+        if !is_sen && cap.is_none() {
+            continue;
+        }
+        let name = r["candidate_name"].as_str().unwrap_or("").trim().to_string();
+        let votes = r["total_votes"].as_str().and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
+        let party = Party::classify(r["party"].as_str());
+        let dist = cap.and_then(|c| c.get(1)).and_then(|g| g.as_str().parse::<u32>().ok());
+        let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
+        let cand = Candidate { name, party, votes };
+        if is_sen {
+            senate.get_or_insert_with(|| Contest { state: cfg.state.clone(), label: office.to_string(), district: None, candidates: vec![], write_in: 0, precincts: None, polling_pct: None }).candidates.push(cand);
+        } else if let Some(ct) = house.iter_mut().find(|c: &&mut Contest| c.district == dist) {
+            ct.candidates.push(cand);
+        } else {
+            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates: vec![cand], write_in: 0, precincts: None, polling_pct: None });
+        }
+    }
+    for ct in house.iter_mut().chain(senate.iter_mut()) {
+        ct.candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        if ct.candidates.is_empty() {
+            return Err("kontes tanpa kandidat".into());
+        }
+    }
+    if senate.is_none() && house.is_empty() {
+        return Err("format berkas tidak dikenali: tidak ada kontes federal".into());
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate, house, refresh_note: None })
+}
+
 /// KNOWiNK "TotalResults" JSON API (North Dakota: api.resultsnd.sos.nd.gov,
 /// Arkansas: enr-results-api.totalresults.com). export_url points at
 /// {base}/Election/GetElectionList?cId={client}; the election marked
@@ -869,6 +927,8 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             parse_inenr(client, &bytes, cfg).await?
         } else if cfg.format == "totalresults" {
             parse_totalresults(client, &bytes, cfg).await?
+        } else if cfg.format == "desocrata" {
+            parse_desocrata(&bytes, cfg)?
         } else if cfg.format == "txsos" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
             parse_txsos(&String::from_utf8_lossy(&bytes), cfg, t)?

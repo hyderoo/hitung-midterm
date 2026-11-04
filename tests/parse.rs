@@ -384,3 +384,18 @@ fn totalresults_ar_real_files() {
     assert_eq!(f.house[0].candidates[0].name, "Rick Crawford");
     assert_eq!(f.house[1].candidates[0].party, Party::Rep);
 }
+
+#[test]
+fn desocrata_real_file() {
+    let cfg = SourceCfg { state: "DE".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U.S. Senator".into()], house_regex: r"^Representative In Congress$".into(), format: "desocrata".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let f = parse_desocrata(include_bytes!("fixtures/de_socrata.json"), &cfg).unwrap();
+    assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T08:03:18+00:00");
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].name, "CHRIS COONS");
+    assert_eq!(s.candidates[0].party, Party::Dem);
+    assert_eq!(s.candidates[0].votes, 240347);
+    assert_eq!(f.house.len(), 1);
+    assert_eq!(f.house[0].label, "Distrik at-large");
+    assert_eq!(f.house[0].candidates[0].name, "SARAH MCBRIDE");
+    assert_eq!(f.house[0].candidates[0].votes, 243467);
+}

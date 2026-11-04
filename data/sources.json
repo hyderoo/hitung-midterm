@@ -191,6 +191,17 @@
       ],
       "house_regex": "^U\\.S\\. Congress District (\\d+)$",
       "format": "totalresults"
+    },
+    {
+      "state": "DE",
+      "label": "Delaware Department of Elections (open data)",
+      "human_url": "https://elections.delaware.gov/results/enr/GE2026.html",
+      "export_url": "https://data.delaware.gov/resource/yg7x-kgjc.json?$where=office%20in(%27U.S.%20Senator%27,%27Representative%20In%20Congress%27)&election_name=2026%20General%20Election&$limit=100",
+      "senate_exact": [
+        "U.S. Senator"
+      ],
+      "house_regex": "^Representative In Congress$",
+      "format": "desocrata"
     }
   ]
 }
