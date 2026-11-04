@@ -86,6 +86,16 @@
       "export_url": "https://app.enhancedvoting.com/cdn/results/washington/export-20261103.json",
       "senate_exact": [],
       "house_regex": "^Congressional District (\\d+) - U\\.S\\. Representative$"
+    },
+    {
+      "state": "ID",
+      "label": "Idaho Secretary of State, results.voteidaho.gov (hasil sementara)",
+      "human_url": "https://results.voteidaho.gov/results/public/id/elections/nov2026",
+      "export_url": "https://results.voteidaho.gov/cdn/results/id/export-nov2026.json",
+      "senate_exact": [
+        "United States Senator"
+      ],
+      "house_regex": "^United States Representative District (\\d+)$"
     }
   ]
 }
