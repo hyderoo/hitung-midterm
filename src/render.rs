@@ -349,7 +349,9 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
 
     let nconn = if view == View::Senate { feeds_ok(feeds).filter(|f| f.senate.is_some()).count() } else { feeds_ok(feeds).filter(|f| !f.house.is_empty()).count() };
     let kind = if view == View::Senate { "Senat" } else { "DPR" };
-    let _ = write!(o, "<div class=\"box covnote\"><b>Baca peta ini dengan hati-hati.</b> Warna di tab ini hanya muncul untuk {nconn} negara bagian yang hasil {kind} sudah tersambung. Abu-abu berarti belum ada data yang tersambung, bukan Republik atau Demokrat kalah atau menang. Peta ini belum mewakili keseimbangan nasional.</div>");
+    let nfail = feeds.iter().filter(|f| matches!(f, FeedResult::Failed { .. })).count();
+    let unavail = if nfail > 0 { format!(" {nfail} sumber yang sebelumnya tersambung sedang tidak tersedia; itu bukan perubahan hasil (lihat daftar di bawah).") } else { String::new() };
+    let _ = write!(o, "<div class=\"box covnote\"><b>Baca peta ini dengan hati-hati.</b> Warna di tab ini hanya muncul untuk {nconn} negara bagian yang hasil {kind} sudah tersambung. Abu-abu berarti belum ada data yang tersambung, bukan Republik atau Demokrat kalah atau menang. Peta ini belum mewakili keseimbangan nasional.{unavail}</div>");
     o.push_str("<div class=\"grid\"><section class=\"mapcol\">");
     o.push_str(&map_svg(reference, feeds, proj, view));
     // legend
@@ -523,6 +525,11 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             }
             o.push_str("</details>");
             let _ = write!(o, "{}</div>", source_note(f, now, stale));
+        }
+        for f in feeds.iter() {
+            if let FeedResult::Failed { state, source_label, reason, .. } = f {
+                let _ = write!(o, "<div class=\"row warn\"><b>{}</b> <span class=\"tag\">Sumber tidak tersedia</span><small class=\"mute\">{}: {}. Ini bukan perubahan hasil pemilu. Angka tidak ditampilkan sampai sumber pulih.</small></div>", esc(&name_of(state)), esc(source_label), esc(reason));
+            }
         }
         o.push_str("</div>");
         let missing: Vec<String> = reference
