@@ -9,6 +9,7 @@ fn cfg() -> SourceCfg {
         senate_exact: vec!["Test Senate".into()],
         house_regex: r"^Test House \((\d+)(?:st|nd|rd|th) District\)$".into(),
         format: String::new(),
+        suspended: None,
     }
 }
 
@@ -69,7 +70,7 @@ fn page_without_data_never_shows_zero_totals_or_control() {
     let html = page(&r, &failed, &hitung_midterm::projection::ProjResult::Failed("x".into()), View::Senate, chrono::Utc::now());
     assert!(html.contains("0 dari 35 pemilihan kursi Senat sudah ada hitungan resmi"));
     assert!(html.contains("Tidak ditampilkan"));
-    assert!(html.contains("Gagal diperbarui"));
+    assert!(html.contains("Sumber tidak tersedia"));
     assert!(!html.contains("dipanggil") && !html.contains("perlombaan"));
 }
 
@@ -131,7 +132,7 @@ mod proj {
 #[test]
 fn ncsbe_statewide_rows() {
     use hitung_midterm::{config::SourceCfg, feed::parse_ncsbe, model::Party};
-    let cfg = SourceCfg { state: "NC".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US SENATE (VOTE FOR 1)".into()], house_regex: r"^US HOUSE OF REPRESENTATIVES DISTRICT (\d+)\s*\(VOTE FOR 1\)$".into(), format: "ncsbe".into() };
+    let cfg = SourceCfg { state: "NC".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US SENATE (VOTE FOR 1)".into()], house_regex: r"^US HOUSE OF REPRESENTATIVES DISTRICT (\d+)\s*\(VOTE FOR 1\)$".into(), format: "ncsbe".into(), suspended: None };
     let row = |c: &str, b: &str, p: &str, v: &str| format!(r#"{{"cnm":"{c}","bnm":"{b}","pty":"{p}","vct":"{v}","prt":"5","ptl":"6"}}"#);
     let j = format!("[{},{},{},{},{}]",
         row("US SENATE (VOTE FOR 1)", "B Rep", "REP", "10"), row("US SENATE (VOTE FOR 1)", "A Dem", "DEM", "30"),
@@ -149,7 +150,7 @@ fn ncsbe_statewide_rows() {
 #[test]
 fn txsos_html_rows() {
     use hitung_midterm::{config::SourceCfg, feed::parse_txsos, model::Party};
-    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into() };
+    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into(), suspended: None };
     let tr = |p: &str, c: &str, v: &str| format!(r#"<tr><td class="party">{p}</td><td class="candidate">{c}</td><td class="ballot">{v}</td></tr>"#);
     let html = format!(r#"<div class="election">U. S. SENATOR </div><div class="polling">Polling Locations Reporting: 47%</div><table>{}{}{}</table><div class="election">U. S. REPRESENTATIVE DISTRICT 1</div><table>{}</table><div class="election">STATE SENATOR DISTRICT 1</div><table>{}</table>"#,
         tr("REPUBLICAN", "A", "1,000"), tr("DEMOCRATIC", "B", "2,000"), tr("WRITE-IN", "W", "5"),
@@ -167,7 +168,7 @@ fn txsos_html_rows() {
 #[test]
 fn txsos_zero_votes_partial_and_ties() {
     use hitung_midterm::{config::SourceCfg, feed::parse_txsos, model::Lead, render::{age, is_partial, Tally}};
-    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into() };
+    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into(), suspended: None };
     let tr = |p: &str, c: &str, v: &str| format!(r#"<tr><td class="party">{p}</td><td class="candidate">{c}</td><td class="ballot">{v}</td></tr>"#);
     let blk = |n: &str, pct: u32, rows: String| format!(r#"<div class="election">{n}</div><div class="polling">Polling Locations Reporting: {pct}%</div><table>{rows}</table>"#);
     let html = [
@@ -194,7 +195,7 @@ fn txsos_zero_votes_partial_and_ties() {
 #[test]
 fn orsos_html_rows_and_time() {
     use hitung_midterm::{config::SourceCfg, feed::parse_orsos, model::Party, render::is_partial};
-    let cfg = SourceCfg { state: "OR".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US Senator".into()], house_regex: r"^US Representative, (\d+)(?:st|nd|rd|th) District$".into(), format: "orsos".into() };
+    let cfg = SourceCfg { state: "OR".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US Senator".into()], house_regex: r"^US Representative, (\d+)(?:st|nd|rd|th) District$".into(), format: "orsos".into(), suspended: None };
     let cand = |n: &str, p: &str, v: &str| format!(r#"<div class="col display-results-box-d"><h1>{n}</h1><h2 class="X">{p}</h2></div><div class="col display-results-box-f"> <div>{v}</div></div>"#);
     let html = format!(r#"<div class="next-count">Results last updated: 11/4/2026 | 12:45 AM PT</div><h1>US Senator</h1>{}{}{}<h1>US Representative, 2nd District</h1>{}<h1>State Senator</h1>{}"#,
         cand("A", "Republican", "600,760"), cand("B", "Democrat, Working Families", "845,830"), cand("Write-in", "", "1,106"),
@@ -214,7 +215,7 @@ fn orsos_html_rows_and_time() {
 #[test]
 fn mdsbe_html_rows_and_time() {
     use hitung_midterm::{config::SourceCfg, feed::parse_mdsbe, model::Party};
-    let cfg = SourceCfg { state: "MD".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec![], house_regex: "".into(), format: "mdsbe".into() };
+    let cfg = SourceCfg { state: "MD".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec![], house_regex: "".into(), format: "mdsbe".into(), suspended: None };
     let tr = |n: &str, p: &str, t: &str| format!("<tr>\n\t<td><div>{n}</div></td>\n\t<td>{p}</td>\n\t<td class=\"alignRight\"> 1</td><td class=\"alignRight\"> NR</td>\n\t<td class=\"alignRight\">{t}</td>\n\t<td class=\"alignRight\">44.08%</td>\n</tr>");
     let html = format!("<div>Last refreshed: 11/04/2026 03:44:31 AM</div><h3>District 1</h3>{}{}{}{}{}<h3>District 2</h3>{}", tr("A","Democratic","119,088"), tr("B","Republican","150,615"), tr("C (Write-In)","Unaffiliated","3"), tr("Other Write-Ins","","477"), tr("<b>Totals</b>","","270,180"), tr("D","Republican","5"));
     let f = parse_mdsbe(&html, &cfg).unwrap();
@@ -234,4 +235,17 @@ fn party_classify_prefers_wording() {
     assert_eq!(Party::classify(Some("Democratic")), Party::Dem);
     assert_eq!(Party::classify(Some("(Prefers Independent Party)")), Party::Other);
     assert_eq!(Party::classify(None), Party::Other);
+}
+
+#[tokio::test]
+async fn suspended_source_is_not_fetched() {
+    use hitung_midterm::{feed::fetch_state, model::FeedResult};
+    let mut c = cfg();
+    c.export_url = "http://127.0.0.1:9/never".into();
+    c.suspended = Some("alasan uji".into());
+    let client = reqwest::Client::new();
+    match fetch_state(&client, &c).await {
+        FeedResult::Failed { reason, .. } => assert!(reason.contains("dihentikan") && reason.contains("alasan uji")),
+        _ => panic!("harus gagal tanpa mengambil data"),
+    }
 }

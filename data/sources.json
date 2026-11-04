@@ -8,7 +8,8 @@
       "senate_exact": [
         "Member, United States Senate"
       ],
-      "house_regex": "^Member, House of Representatives \\((\\d+)(?:st|nd|rd|th) District\\)$"
+      "house_regex": "^Member, House of Representatives \\((\\d+)(?:st|nd|rd|th) District\\)$",
+      "suspended": "server sumber membalas HTTP 403 untuk permintaan dari situs ini pada 4 Nov 2026 16.09 WIB; tidak dicoba ulang"
     },
     {
       "state": "GA",

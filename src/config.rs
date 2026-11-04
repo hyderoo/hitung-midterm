@@ -14,6 +14,9 @@ pub struct SourceCfg {
     /// "" = Enhanced Voting Media Export; "ncsbe" = NC State Board statewide results file.
     #[serde(default)]
     pub format: String,
+    /// When set, the origin is not fetched at all (reason shown on the page).
+    #[serde(default)]
+    pub suspended: Option<String>,
 }
 #[derive(Deserialize)]
 struct Sources {

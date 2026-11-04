@@ -374,6 +374,9 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
         human_url: cfg.human_url.clone(),
         reason,
     };
+    if let Some(why) = &cfg.suspended {
+        return fail(format!("pengambilan data dihentikan: {why}"));
+    }
     let mut req = client.get(&cfg.export_url);
     if let Some(Entry { etag: Some(t), feed: Some(_), .. }) = guard.as_ref() {
         req = req.header("If-None-Match", t.clone());

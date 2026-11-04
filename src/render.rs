@@ -479,7 +479,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         }
         for f in feeds.iter() {
             if let FeedResult::Failed { state, source_label, reason, .. } = f {
-                let _ = write!(o, "<div class=\"row warn\"><b>{}</b> <span class=\"tag\">Gagal diperbarui</span><small class=\"mute\">{}: {}. Angka tidak ditampilkan sampai sumber pulih.</small></div>", esc(&name_of(state)), esc(source_label), esc(reason));
+                let _ = write!(o, "<div class=\"row warn\"><b>{}</b> <span class=\"tag\">Sumber tidak tersedia</span><small class=\"mute\">{}: {}. Ini bukan perubahan hasil pemilu. Angka tidak ditampilkan sampai sumber pulih.</small></div>", esc(&name_of(state)), esc(source_label), esc(reason));
             }
         }
         o.push_str("</div>");
