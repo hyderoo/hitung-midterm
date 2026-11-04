@@ -319,7 +319,8 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
     let house_total = reference.house_total();
     let ht = house_tally(feeds);
     let ok: Vec<&StateFeed> = feeds_ok(feeds).collect();
-    let connected = ok.iter().map(|f| f.state.as_str()).collect::<Vec<_>>().join(", ");
+    let vok: Vec<&&StateFeed> = ok.iter().filter(|f| if view == View::Senate { f.senate.is_some() } else { !f.house.is_empty() }).collect();
+    let connected = vok.iter().map(|f| f.state.as_str()).collect::<Vec<_>>().join(", ");
     let newest = ok.iter().map(|f| f.source_time).max();
     let name_of = |code: &str| reference.map.states.get(code).map(|s| s.name.clone()).unwrap_or(code.to_string());
 
@@ -437,7 +438,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
     let _ = write!(
         o,
         "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Situs ini baru memuat hitungan resmi dari beberapa negara bagian, jadi belum ada dasar untuk total kamar. Angka di atas hanya jumlah pemilihan yang sudah ada hitungan resmi.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
-        ok.len(),
+        vok.len(),
         if connected.is_empty() { "belum ada".to_string() } else { connected }
     );
 
