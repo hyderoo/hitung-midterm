@@ -17,6 +17,14 @@ pub struct SourceCfg {
     /// When set, the origin is not fetched at all (reason shown on the page).
     #[serde(default)]
     pub suspended: Option<String>,
+    /// Extra pages fetched and concatenated before parsing (Nebraska keeps
+    /// statewide and congressional contests on separate pages).
+    #[serde(default)]
+    pub extra_urls: Vec<String>,
+    /// Optional contest-heading regex for "orsos" pages whose headings do not
+    /// start with US/United States (Nebraska uses "For ...").
+    #[serde(default)]
+    pub head_regex: Option<String>,
 }
 #[derive(Deserialize)]
 struct Sources {

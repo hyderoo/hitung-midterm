@@ -107,6 +107,61 @@
       ],
       "house_regex": "^United States Representative DISTRICT (\\d+)$",
       "format": "orsos"
+    },
+    {
+      "state": "SD",
+      "label": "South Dakota Secretary of State (hasil sementara)",
+      "human_url": "https://electionresults.sd.gov/resultsSW.aspx?type=SWR&map=CTY",
+      "export_url": "https://electionresults.sd.gov/resultsSW.aspx?type=SWR&map=CTY",
+      "senate_exact": [
+        "United States Senator"
+      ],
+      "house_regex": "^United States Representative$",
+      "format": "orsos"
+    },
+    {
+      "state": "NE",
+      "label": "Nebraska Secretary of State (hasil sementara)",
+      "human_url": "https://electionresults.nebraska.gov/",
+      "export_url": "https://electionresults.nebraska.gov/resultsSW.aspx?type=SW&map=CTY",
+      "extra_urls": [
+        "https://electionresults.nebraska.gov/resultsSW.aspx?type=CG&map=DIST"
+      ],
+      "senate_exact": [
+        "For United States Senator - 6  Year Term"
+      ],
+      "house_regex": "^For Representative in Congress - 2  Year Term - District (\\d+)$",
+      "format": "orsos",
+      "head_regex": "<h1>(For [^<]*)</h1>"
+    },
+    {
+      "state": "AL",
+      "label": "Alabama Secretary of State (hasil sementara)",
+      "human_url": "https://www2.alabamavotes.gov/electionNight/statewideResultsByContest.aspx?ecode=1001305",
+      "export_url": "https://www2.alabamavotes.gov/electionNight/statewideResultsByContest.aspx?ecode=1001305",
+      "senate_exact": [
+        "UNITED STATES SENATOR"
+      ],
+      "house_regex": "^UNITED STATES REPRESENTATIVE, (\\d+)(?:ST|ND|RD|TH) CONGRESSIONAL DISTRICT$",
+      "format": "alsos"
+    },
+    {
+      "state": "HI",
+      "label": "Hawaii Office of Elections (hasil sementara)",
+      "human_url": "https://elections.hawaii.gov/election-results/",
+      "export_url": "https://elections.hawaii.gov/wp-content/results/2026%20General/summary.txt",
+      "senate_exact": [],
+      "house_regex": "^U\\.S\\. Representative, Dist (I+)$",
+      "format": "hisummary"
+    },
+    {
+      "state": "VT",
+      "label": "Vermont Secretary of State (hasil sementara)",
+      "human_url": "https://electionresults.vermont.gov/",
+      "export_url": "https://static.electionresults.vermont.gov/elections/elections.json",
+      "senate_exact": [],
+      "house_regex": "^REPRESENTATIVE TO CONGRESS$",
+      "format": "vtenr"
     }
   ]
 }

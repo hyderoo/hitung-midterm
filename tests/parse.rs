@@ -10,6 +10,8 @@ fn cfg() -> SourceCfg {
         house_regex: r"^Test House \((\d+)(?:st|nd|rd|th) District\)$".into(),
         format: String::new(),
         suspended: None,
+        extra_urls: vec![],
+        head_regex: None,
     }
 }
 
@@ -132,7 +134,7 @@ mod proj {
 #[test]
 fn ncsbe_statewide_rows() {
     use hitung_midterm::{config::SourceCfg, feed::parse_ncsbe, model::Party};
-    let cfg = SourceCfg { state: "NC".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US SENATE (VOTE FOR 1)".into()], house_regex: r"^US HOUSE OF REPRESENTATIVES DISTRICT (\d+)\s*\(VOTE FOR 1\)$".into(), format: "ncsbe".into(), suspended: None };
+    let cfg = SourceCfg { state: "NC".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US SENATE (VOTE FOR 1)".into()], house_regex: r"^US HOUSE OF REPRESENTATIVES DISTRICT (\d+)\s*\(VOTE FOR 1\)$".into(), format: "ncsbe".into(), suspended: None, extra_urls: vec![], head_regex: None };
     let row = |c: &str, b: &str, p: &str, v: &str| format!(r#"{{"cnm":"{c}","bnm":"{b}","pty":"{p}","vct":"{v}","prt":"5","ptl":"6"}}"#);
     let j = format!("[{},{},{},{},{}]",
         row("US SENATE (VOTE FOR 1)", "B Rep", "REP", "10"), row("US SENATE (VOTE FOR 1)", "A Dem", "DEM", "30"),
@@ -150,7 +152,7 @@ fn ncsbe_statewide_rows() {
 #[test]
 fn txsos_html_rows() {
     use hitung_midterm::{config::SourceCfg, feed::parse_txsos, model::Party};
-    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into(), suspended: None };
+    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into(), suspended: None, extra_urls: vec![], head_regex: None };
     let tr = |p: &str, c: &str, v: &str| format!(r#"<tr><td class="party">{p}</td><td class="candidate">{c}</td><td class="ballot">{v}</td></tr>"#);
     let html = format!(r#"<div class="election">U. S. SENATOR </div><div class="polling">Polling Locations Reporting: 47%</div><table>{}{}{}</table><div class="election">U. S. REPRESENTATIVE DISTRICT 1</div><table>{}</table><div class="election">STATE SENATOR DISTRICT 1</div><table>{}</table>"#,
         tr("REPUBLICAN", "A", "1,000"), tr("DEMOCRATIC", "B", "2,000"), tr("WRITE-IN", "W", "5"),
@@ -168,7 +170,7 @@ fn txsos_html_rows() {
 #[test]
 fn txsos_zero_votes_partial_and_ties() {
     use hitung_midterm::{config::SourceCfg, feed::parse_txsos, model::Lead, render::{age, is_partial, Tally}};
-    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into(), suspended: None };
+    let cfg = SourceCfg { state: "TX".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U. S. SENATOR".into()], house_regex: r"^U\. S\. REPRESENTATIVE DISTRICT (\d+)$".into(), format: "txsos".into(), suspended: None, extra_urls: vec![], head_regex: None };
     let tr = |p: &str, c: &str, v: &str| format!(r#"<tr><td class="party">{p}</td><td class="candidate">{c}</td><td class="ballot">{v}</td></tr>"#);
     let blk = |n: &str, pct: u32, rows: String| format!(r#"<div class="election">{n}</div><div class="polling">Polling Locations Reporting: {pct}%</div><table>{rows}</table>"#);
     let html = [
@@ -195,7 +197,7 @@ fn txsos_zero_votes_partial_and_ties() {
 #[test]
 fn orsos_html_rows_and_time() {
     use hitung_midterm::{config::SourceCfg, feed::parse_orsos, model::Party, render::is_partial};
-    let cfg = SourceCfg { state: "OR".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US Senator".into()], house_regex: r"^US Representative, (\d+)(?:st|nd|rd|th) District$".into(), format: "orsos".into(), suspended: None };
+    let cfg = SourceCfg { state: "OR".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["US Senator".into()], house_regex: r"^US Representative, (\d+)(?:st|nd|rd|th) District$".into(), format: "orsos".into(), suspended: None, extra_urls: vec![], head_regex: None };
     let cand = |n: &str, p: &str, v: &str| format!(r#"<div class="col display-results-box-d"><h1>{n}</h1><h2 class="X">{p}</h2></div><div class="col display-results-box-f"> <div>{v}</div></div>"#);
     let html = format!(r#"<div class="next-count">Results last updated: 11/4/2026 | 12:45 AM PT</div><h1>US Senator</h1>{}{}{}<h1>US Representative, 2nd District</h1>{}<h1>State Senator</h1>{}"#,
         cand("A", "Republican", "600,760"), cand("B", "Democrat, Working Families", "845,830"), cand("Write-in", "", "1,106"),
@@ -215,7 +217,7 @@ fn orsos_html_rows_and_time() {
 #[test]
 fn mdsbe_html_rows_and_time() {
     use hitung_midterm::{config::SourceCfg, feed::parse_mdsbe, model::Party};
-    let cfg = SourceCfg { state: "MD".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec![], house_regex: "".into(), format: "mdsbe".into(), suspended: None };
+    let cfg = SourceCfg { state: "MD".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec![], house_regex: "".into(), format: "mdsbe".into(), suspended: None, extra_urls: vec![], head_regex: None };
     let tr = |n: &str, p: &str, t: &str| format!("<tr>\n\t<td><div>{n}</div></td>\n\t<td>{p}</td>\n\t<td class=\"alignRight\"> 1</td><td class=\"alignRight\"> NR</td>\n\t<td class=\"alignRight\">{t}</td>\n\t<td class=\"alignRight\">44.08%</td>\n</tr>");
     let html = format!("<div>Last refreshed: 11/04/2026 03:44:31 AM</div><h3>District 1</h3>{}{}{}{}{}<h3>District 2</h3>{}", tr("A","Democratic","119,088"), tr("B","Republican","150,615"), tr("C (Write-In)","Unaffiliated","3"), tr("Other Write-Ins","","477"), tr("<b>Totals</b>","","270,180"), tr("D","Republican","5"));
     let f = parse_mdsbe(&html, &cfg).unwrap();
@@ -253,7 +255,7 @@ async fn suspended_source_is_not_fetched() {
 #[test]
 fn orsos_nm_layout_mt_time_and_precincts() {
     use hitung_midterm::{config::SourceCfg, feed::parse_orsos, model::Party};
-    let cfg = SourceCfg { state: "NM".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["United States Senator".into()], house_regex: r"^United States Representative DISTRICT (\d+)$".into(), format: "orsos".into(), suspended: None };
+    let cfg = SourceCfg { state: "NM".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["United States Senator".into()], house_regex: r"^United States Representative DISTRICT (\d+)$".into(), format: "orsos".into(), suspended: None, extra_urls: vec![], head_regex: None };
     let cand = |n: &str, p: &str, v: &str| format!(r#"<div class="col display-results-box-d"><h1>{n}</h1><h2 class="X">{p}</h2></div><div class="col display-results-box-f"><h1>{v}</h1></div>"#);
     let html = format!(r#"Results last updated:</span><span>11/4/2026 2:21 AM MT</span> <h1>United States Senator </h1><div class="precinct-fully">Precincts Fully: 2204 / 2204</div>{}{}<h1>United States Representative DISTRICT 2</h1><div>Precincts Fully: 10 / 20</div>{}{}"#,
         cand("BEN R LUJAN","Democrat","455,165"), cand("LARRY E MARKER","Republican","265,557"), cand("A","Democrat","86,650"), cand("B","Republican","123,113"));
@@ -264,4 +266,76 @@ fn orsos_nm_layout_mt_time_and_precincts() {
     assert_eq!(s.precincts, Some((2204, 2204)));
     assert_eq!(f.house[0].precincts, Some((10, 20)));
     assert_eq!(f.house[0].candidates[0].votes, 123113);
+}
+
+// Regression tests below use fixtures saved verbatim from the live state
+// pages (4 Nov 2026), because a hand-written fixture once hid a real-markup
+// mismatch (NM timestamp wrapped in spans). When updating a parser, refresh
+// the fixture from the live page first, never the other way around.
+
+#[test]
+fn sd_swr_real_page() {
+    let cfg = SourceCfg { state: "SD".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["United States Senator".into()], house_regex: r"^United States Representative$".into(), format: "orsos".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let f = parse_orsos(&String::from_utf8_lossy(include_bytes!("fixtures/sd_swr.html")), &cfg).unwrap();
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].name, "Mike Rounds");
+    assert_eq!(s.candidates[0].party, Party::Rep);
+    assert_eq!(s.candidates[0].votes, 184477);
+    assert_eq!(s.precincts, Some((670, 671)));
+    assert_eq!(f.house.len(), 1);
+    assert_eq!(f.house[0].label, "Distrik at-large");
+    assert_eq!(f.house[0].candidates[0].name, "Marty Jackley");
+    assert_eq!(f.house[0].candidates[1].name, "Nicole \"Nikki\" Gronli");
+    assert_eq!(f.house[0].candidates.len(), 2, "gubernatorial candidates must not leak into the at-large House segment");
+}
+
+#[test]
+fn ne_sw_and_cg_real_pages() {
+    let cfg = SourceCfg { state: "NE".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["For United States Senator - 6  Year Term".into()], house_regex: r"^For Representative in Congress - 2  Year Term - District (\d+)$".into(), format: "orsos".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let mut t = String::from_utf8_lossy(include_bytes!("fixtures/ne_sw.html")).into_owned();
+    t.push('\n');
+    t.push_str(&String::from_utf8_lossy(include_bytes!("fixtures/ne_cg.html")));
+    let f = parse_orsos(&t, &cfg).unwrap();
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].name, "Pete Ricketts");
+    assert_eq!(s.candidates[0].party, Party::Rep);
+    assert_eq!(s.candidates.len(), 5);
+    assert_eq!(s.precincts, Some((1269, 1322)));
+    assert_eq!(f.house.len(), 3);
+    assert_eq!(f.house[0].district, Some(1));
+    assert_eq!(f.house[0].candidates[0].name, "Mike Flood");
+    assert_eq!(f.house[1].candidates[0].party, Party::Dem);
+}
+
+#[test]
+fn al_statewide_real_page() {
+    let cfg = SourceCfg { state: "AL".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["UNITED STATES SENATOR".into()], house_regex: r"^UNITED STATES REPRESENTATIVE, (\d+)(?:ST|ND|RD|TH) CONGRESSIONAL DISTRICT$".into(), format: "alsos".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let f = parse_alsos(&String::from_utf8_lossy(include_bytes!("fixtures/al_statewide.html")), &cfg).unwrap();
+    assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T06:07:22+00:00");
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].name, "Barry Moore");
+    assert_eq!(s.candidates[0].party, Party::Rep);
+    assert_eq!(s.candidates[0].votes, 917344);
+    assert_eq!(s.candidates[1].party, Party::Dem);
+    assert_eq!(s.write_in, 2047);
+    assert_eq!(f.house.len(), 7);
+    assert_eq!(f.house[1].district, Some(2));
+    assert_eq!(f.house[1].candidates[0].name, "Shomari C. Figures");
+    assert_eq!(f.house[1].candidates[0].party, Party::Dem);
+}
+
+#[test]
+fn hi_summary_real_file() {
+    let cfg = SourceCfg { state: "HI".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec![], house_regex: r"^U\.S\. Representative, Dist (I+)$".into(), format: "hisummary".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let lm = chrono::DateTime::parse_from_rfc2822("Wed, 04 Nov 2026 09:47:00 GMT").unwrap().with_timezone(&chrono::Utc);
+    let f = parse_hisummary(&String::from_utf8_lossy(include_bytes!("fixtures/hi_summary.txt")), &cfg, lm).unwrap();
+    assert!(f.senate.is_none());
+    assert_eq!(f.house.len(), 2);
+    assert_eq!(f.house[0].district, Some(1));
+    assert_eq!(f.house[0].candidates[0].name, "CASE, Ed");
+    assert_eq!(f.house[0].candidates[0].party, Party::Dem);
+    assert_eq!(f.house[0].candidates[0].votes, 100096);
+    assert_eq!(f.house[0].precincts, Some((112, 223)));
+    assert_eq!(f.house[1].district, Some(2));
+    assert_eq!(f.house[1].candidates[1].party, Party::Rep);
 }

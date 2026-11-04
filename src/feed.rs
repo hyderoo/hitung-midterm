@@ -219,8 +219,8 @@ pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> R
         let stop = heads.get(i + 1).map(|h| h.0).unwrap_or(html.len());
         let seg = &html[*end..stop];
         let is_sen = cfg.senate_exact.iter().any(|n| n == name);
-        let dist = re.captures(name).and_then(|c| c[1].parse::<u32>().ok());
-        if !is_sen && dist.is_none() {
+        let dist = re.captures(name).and_then(|c| c.get(1)).and_then(|m| m.as_str().parse::<u32>().ok());
+        if !is_sen && re.captures(name).is_none() {
             continue;
         }
         let polling_pct = Regex::new(r"Polling Locations Reporting: (\d+)%").ok().and_then(|p| p.captures(seg)).and_then(|c| c[1].parse::<u8>().ok());
@@ -259,10 +259,21 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
     // US standard time offsets (valid after the Nov 1 2026 DST change).
     let hours = match &c[3] { "PT" => 8, "MT" => 7, "CT" => 6, _ => 5 };
     let source_time = FixedOffset::west_opt(hours * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
-    let head = Regex::new(r"<h1>((?:US|United States) [^<]*)</h1>").map_err(|e| e.to_string())?;
+    // Every h1 is a contest boundary except the ones inside a candidate
+    // block (candidate name/vote cells are h1s too). This keeps non-federal
+    // contests (Governor etc.) from leaking into the last federal segment.
+    let head = Regex::new(cfg.head_regex.as_deref().unwrap_or(r"<h1>([^<]*)</h1>")).map_err(|e| e.to_string())?;
     let cand = Regex::new(r#"(?s)<h1>([^<]*)</h1>\s*<h2 class="[^"]*">([^<]*)</h2>.*?<div class="col display-results-box-f">\s*<(?:div|h1)>([\d,]+)</(?:div|h1)>"#).map_err(|e| e.to_string())?;
     let prec = Regex::new(r"Precincts Fully:\s*(\d+)\s*/\s*(\d+)").map_err(|e| e.to_string())?;
-    let heads: Vec<(usize, usize, String)> = head.captures_iter(html).map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end(), c[1].trim().to_string())).collect();
+    let cand_spans: Vec<(usize, usize)> = cand.captures_iter(html).map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end())).collect();
+    let heads: Vec<(usize, usize, String)> = head
+        .captures_iter(html)
+        .filter(|c| {
+            let p = c.get(0).unwrap().start();
+            !cand_spans.iter().any(|&(a, b)| p >= a && p < b)
+        })
+        .map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end(), c[1].trim().to_string()))
+        .collect();
     if heads.is_empty() {
         return Err("format halaman tidak dikenali: tidak ada kontes".into());
     }
@@ -272,8 +283,8 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
         let stop = heads.get(i + 1).map(|h| h.0).unwrap_or(html.len());
         let seg = &html[*end..stop];
         let is_sen = cfg.senate_exact.iter().any(|n| n == name);
-        let dist = re.captures(name).and_then(|c| c[1].parse::<u32>().ok());
-        if !is_sen && dist.is_none() {
+        let dist = re.captures(name).and_then(|c| c.get(1)).and_then(|m| m.as_str().parse::<u32>().ok());
+        if !is_sen && re.captures(name).is_none() {
             continue;
         }
         let precincts = prec.captures(seg).and_then(|c| Some((c[1].parse::<u32>().ok()?, c[2].parse::<u32>().ok()?)));
@@ -289,7 +300,8 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
             }
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
-        let ct = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts, polling_pct: None };
+        let label = if is_sen { "Senat AS".to_string() } else { dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string()) };
+        let ct = Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts, polling_pct: None };
         if is_sen { senate = Some(ct); } else { house.push(ct); }
     }
     house.sort_by_key(|c| c.district);
@@ -340,6 +352,227 @@ pub fn parse_mdsbe(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
     Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate: None, house, refresh_note: None })
 }
 
+
+/// Alabama election-night statewide results page (HTML). "Last Updated:
+/// <span id="lblLastUpdated">M/D/YYYY H:MM:SS AM" is Central time (UTC-6
+/// after the Nov 1 2026 DST change). The page publishes no precinct counts.
+pub fn parse_alsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
+    use chrono::{FixedOffset, NaiveDateTime, TimeZone};
+    let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let ts = Regex::new(r#"(?s)Last Updated:.*?lblLastUpdated">\s*(\d+/\d+/\d{4} \d+:\d{2}:\d{2} [AP]M)"#).map_err(|e| e.to_string())?;
+    let c = ts.captures(html).ok_or("halaman tidak mencantumkan waktu pembaruan")?;
+    let naive = NaiveDateTime::parse_from_str(&c[1], "%m/%d/%Y %I:%M:%S %p").map_err(|e| e.to_string())?;
+    let source_time = FixedOffset::west_opt(6 * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
+    let head = Regex::new(r#"enrContestHeader">\s*([^<]+?)\s*</td>"#).map_err(|e| e.to_string())?;
+    let cand = Regex::new(r#"(?s)enr(?:Alt)?CandidateListItemCol enrCandNameCol"[^>]*>([^<]+)</td>.*?enrCandVoteNumCol"><div class="numberValue">([\d,]+)</div>"#).map_err(|e| e.to_string())?;
+    let party_tag = Regex::new(r"\(([A-Za-z]+)\)\s*$").map_err(|e| e.to_string())?;
+    let cand_spans: Vec<(usize, usize)> = cand.captures_iter(html).map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end())).collect();
+    let heads: Vec<(usize, usize, String)> = head
+        .captures_iter(html)
+        .filter(|c| {
+            let p = c.get(0).unwrap().start();
+            !cand_spans.iter().any(|&(a, b)| p >= a && p < b)
+        })
+        .map(|c| (c.get(0).unwrap().start(), c.get(0).unwrap().end(), c[1].trim().to_string()))
+        .collect();
+    if heads.is_empty() {
+        return Err("format halaman tidak dikenali: tidak ada kontes".into());
+    }
+    let mut senate = None;
+    let mut house = Vec::new();
+    for (i, (_, end, name)) in heads.iter().enumerate() {
+        let stop = heads.get(i + 1).map(|h| h.0).unwrap_or(html.len());
+        let seg = &html[*end..stop];
+        let is_sen = cfg.senate_exact.iter().any(|n| n == name);
+        let dist = re.captures(name).and_then(|c| c.get(1)).and_then(|m| m.as_str().parse::<u32>().ok());
+        if !is_sen && re.captures(name).is_none() {
+            continue;
+        }
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for r in cand.captures_iter(seg) {
+            let v: u64 = r[2].replace(',', "").parse().map_err(|_| format!("angka suara tidak valid di {name}"))?;
+            let raw = r[1].trim();
+            if raw.to_ascii_lowercase().starts_with("write-in") {
+                write_in += v;
+                continue;
+            }
+            let pty = party_tag.captures(raw).map(|c| c[1].to_string());
+            candidates.push(Candidate { name: clean_name(raw), party: Party::classify(pty.as_deref()), votes: v });
+        }
+        if candidates.is_empty() {
+            return Err(format!("kontes {name}: tidak ada kandidat terbaca"));
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        let label = if is_sen { "Senat AS".to_string() } else { dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string()) };
+        let ct = Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts: None, polling_pct: None };
+        if is_sen { senate = Some(ct); } else { house.push(ct); }
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate, house, refresh_note: None })
+}
+
+fn roman(s: &str) -> Option<u32> {
+    let mut total = 0i64;
+    let mut prev = 0i64;
+    for ch in s.chars().rev() {
+        let v = match ch { 'I' => 1, 'V' => 5, 'X' => 10, 'L' => 50, _ => return None };
+        if v < prev { total -= v } else { total += v; prev = v }
+    }
+    if total > 0 { Some(total as u32) } else { None }
+}
+
+/// Split a TSV with RFC-4180-style quoting (fields may hold newlines).
+fn tsv_rows(s: &str) -> Vec<Vec<String>> {
+    let mut rows = Vec::new();
+    let mut row = Vec::new();
+    let mut field = String::new();
+    let mut in_q = false;
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if in_q {
+            if c == '"' {
+                if chars.peek() == Some(&'"') { chars.next(); field.push('"'); } else { in_q = false; }
+            } else { field.push(c); }
+        } else {
+            match c {
+                '"' => in_q = true,
+                '\t' => { row.push(std::mem::take(&mut field)); }
+                '\n' => { row.push(std::mem::take(&mut field)); rows.push(std::mem::take(&mut row)); }
+                '\r' => {}
+                _ => field.push(c),
+            }
+        }
+    }
+    if !field.is_empty() || !row.is_empty() { row.push(field); rows.push(row); }
+    rows
+}
+
+/// Hawaii Office of Elections statewide summary (tab-delimited text). Column
+/// layout follows the "#Contest ID" header row. There is no page timestamp,
+/// so the HTTP Last-Modified header is the source time.
+pub fn parse_hisummary(text: &str, cfg: &SourceCfg, lm: DateTime<Utc>) -> Result<StateFeed, String> {
+    let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let rows = tsv_rows(text);
+    let mut house: std::collections::BTreeMap<u32, Contest> = std::collections::BTreeMap::new();
+    for row in &rows {
+        if row.len() < 21 || row[0].starts_with('#') || row[0].is_empty() {
+            continue;
+        }
+        let title = row[1].trim();
+        let dist = re.captures(title).and_then(|c| c.get(1)).and_then(|m| roman(m.as_str()));
+        let Some(dist) = dist else { continue };
+        let votes: u64 = row[20].trim().replace(',', "").parse().map_err(|_| format!("angka suara tidak valid di {title}"))?;
+        let raw_name = row[15].trim();
+        let (party, name) = if raw_name.starts_with('(') {
+            let end = raw_name.find(')').unwrap_or(3);
+            let letter = raw_name[1..end].trim().to_ascii_lowercase();
+            let party = if letter == "d" { Party::Dem } else if letter == "r" { Party::Rep } else { Party::Other };
+            (party, raw_name[end + 1..].trim().to_string())
+        } else {
+            (Party::Other, raw_name.to_string())
+        };
+        let counted: u32 = row[13].trim().parse().unwrap_or(0);
+        let total: u32 = row[12].trim().parse().unwrap_or(0);
+        let ct = house.entry(dist).or_insert_with(|| Contest {
+            state: cfg.state.clone(),
+            label: format!("Distrik {dist}"),
+            district: Some(dist),
+            candidates: Vec::new(),
+            write_in: 0,
+            precincts: if total > 0 { Some((counted, total)) } else { None },
+            polling_pct: None,
+        });
+        if name.to_ascii_lowercase().contains("write-in") || name.to_ascii_lowercase().contains("write in") {
+            ct.write_in += votes;
+        } else {
+            ct.candidates.push(Candidate { name, party, votes });
+        }
+    }
+    if house.is_empty() {
+        return Err("format berkas tidak dikenali: tidak ada distrik DPR".into());
+    }
+    let mut house: Vec<Contest> = house.into_values().collect();
+    for ct in &mut house {
+        ct.candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+    }
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time: lm, senate: None, house, refresh_note: None })
+}
+
+/// Vermont election-night results (Angular SPA backed by static JSON).
+/// export_url points at elections.json; the general-election entry's
+/// federal.path names a timestamped per-tab file on the same host. The page's
+/// "lastUpdatedDate" is Eastern time (UTC-5 after the Nov 1 2026 DST change).
+pub async fn parse_vtenr(client: &reqwest::Client, elections: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    use chrono::{FixedOffset, NaiveDateTime, TimeZone};
+    let g: serde_json::Value = serde_json::from_slice(elections).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+    let arr = g.as_array().ok_or("daftar pemilihan tidak dikenali")?;
+    let entry = arr.iter().find(|e| e["isGeneralElection"].as_bool() == Some(true) && e["isDefault"].as_bool() == Some(true))
+        .or_else(|| arr.iter().find(|e| e["isGeneralElection"].as_bool() == Some(true)))
+        .ok_or("tidak ada pemilihan umum dalam daftar")?;
+    let guid = entry["electionGuid"].as_str().ok_or("GUID pemilihan tidak ada")?;
+    let base = cfg.export_url.strip_suffix("elections/elections.json").ok_or("export_url tidak berakhiran elections.json")?;
+    let meta_resp = client.get(format!("{base}elections/{guid}.json")).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+    if !meta_resp.status().is_success() {
+        return Err(format!("sumber membalas HTTP {}", meta_resp.status().as_u16()));
+    }
+    let meta_bytes = meta_resp.bytes().await.map_err(|e| e.to_string())?;
+    let meta: serde_json::Value = serde_json::from_slice(&meta_bytes).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+    let updated = meta["lastUpdatedDate"].as_str().ok_or("halaman tidak mencantumkan waktu pembaruan")?;
+    let naive = NaiveDateTime::parse_from_str(updated, "%m/%d/%Y %I:%M %p").map_err(|e| e.to_string())?;
+    let source_time = FixedOffset::west_opt(5 * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
+    let precincts = meta["townsReporting"].as_str().and_then(|s| {
+        let (a, b) = s.split_once('/')?;
+        Some((a.trim().parse::<u32>().ok()?, b.trim().parse::<u32>().ok()?))
+    });
+    let path = meta["federal"]["path"].as_str().ok_or("berkas federal tidak tercantum")?.replace('\\', "/");
+    let fed_resp = client.get(format!("{base}{path}")).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+    if !fed_resp.status().is_success() {
+        return Err(format!("sumber membalas HTTP {}", fed_resp.status().as_u16()));
+    }
+    let fed: serde_json::Value = serde_json::from_slice(&fed_resp.bytes().await.map_err(|e| e.to_string())?).map_err(|e| format!("respons tidak dikenali: {e}"))?;
+    let re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let mut house = Vec::new();
+    let offices = fed["d"].as_array().and_then(|d| d.first()).and_then(|p| p["o"].as_array()).cloned().unwrap_or_default();
+    for off in &offices {
+        let name = off["on"].as_str().unwrap_or("").trim();
+        if re.captures(name).is_none() {
+            continue;
+        }
+        let mut totals: std::collections::BTreeMap<String, (String, Party, u64)> = std::collections::BTreeMap::new();
+        let mut write_in = 0u64;
+        if let Some(towns) = off["cs"].as_array() {
+            for town in towns {
+                if let Some(rows) = town["rc"].as_array() {
+                    for r in rows {
+                        let cid = r["cid"].as_i64().unwrap_or(0).to_string();
+                        let cn = r["cn"].as_str().unwrap_or("").trim().to_string();
+                        let pn = r["pn"].as_str().unwrap_or("").to_string();
+                        let vc = r["vc"].as_u64().unwrap_or(0);
+                        let e = totals.entry(cid).or_insert((cn, Party::classify(Some(&pn)), 0));
+                        e.2 += vc;
+                    }
+                }
+                if let Some(wrows) = town["wc"].as_array() {
+                    for r in wrows {
+                        write_in += r["vc"].as_u64().unwrap_or(0);
+                    }
+                }
+            }
+        }
+        let mut candidates: Vec<Candidate> = totals.into_values().map(|(name, party, votes)| Candidate { name, party, votes }).collect();
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        if candidates.is_empty() {
+            return Err(format!("kontes {name}: tidak ada kandidat terbaca"));
+        }
+        house.push(Contest { state: cfg.state.clone(), label: "Distrik at-large".into(), district: None, candidates, write_in, precincts, polling_pct: None });
+    }
+    if house.is_empty() {
+        return Err("format berkas tidak dikenali: tidak ada kontes DPR".into());
+    }
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate: None, house, refresh_note: None })
+}
+
 /// Per-source cache kept in the warm function instance. The source files are
 /// large (27-48 MB), so one lock per source gives single-flight refreshes, a
 /// minimum interval between origin requests, and conditional requests
@@ -382,8 +615,10 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
         return fail(format!("pengambilan data dihentikan: {why}"));
     }
     let mut req = client.get(&cfg.export_url);
-    if let Some(Entry { etag: Some(t), feed: Some(_), .. }) = guard.as_ref() {
-        req = req.header("If-None-Match", t.clone());
+    if cfg.extra_urls.is_empty() {
+        if let Some(Entry { etag: Some(t), feed: Some(_), .. }) = guard.as_ref() {
+            req = req.header("If-None-Match", t.clone());
+        }
     }
     let outcome: Result<Option<(StateFeed, Option<String>)>, String> = async {
         let resp = req.send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
@@ -401,10 +636,33 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
             .map(|d| d.with_timezone(&Utc));
         let bytes = resp.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
-        let feed = if cfg.format == "mdsbe" {
+        let mut combined: Option<String> = None;
+        if cfg.format == "orsos" && !cfg.extra_urls.is_empty() {
+            let mut text = String::from_utf8_lossy(&bytes).into_owned();
+            for u in &cfg.extra_urls {
+                let r2 = client.get(u).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+                if !r2.status().is_success() {
+                    return Err(format!("sumber membalas HTTP {}", r2.status().as_u16()));
+                }
+                let b2 = r2.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
+                text.push('\n');
+                text.push_str(&String::from_utf8_lossy(&b2));
+            }
+            combined = Some(text);
+        }
+        let feed = if let Some(t) = &combined {
+            parse_orsos(t, cfg)?
+        } else if cfg.format == "mdsbe" {
             parse_mdsbe(&String::from_utf8_lossy(&bytes), cfg)?
         } else if cfg.format == "orsos" {
             parse_orsos(&String::from_utf8_lossy(&bytes), cfg)?
+        } else if cfg.format == "alsos" {
+            parse_alsos(&String::from_utf8_lossy(&bytes), cfg)?
+        } else if cfg.format == "hisummary" {
+            let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
+            parse_hisummary(&String::from_utf8_lossy(&bytes), cfg, t)?
+        } else if cfg.format == "vtenr" {
+            parse_vtenr(client, &bytes, cfg).await?
         } else if cfg.format == "txsos" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
             parse_txsos(&String::from_utf8_lossy(&bytes), cfg, t)?

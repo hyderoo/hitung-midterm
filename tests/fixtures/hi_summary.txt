@@ -1,0 +1,210 @@
+#FormatVersion 1																				
+#Contest ID	Contest Title	Contest Seq Nbr	Contest Type	Contest Party	Mail Blank Votes	In-Person Blank Votes	Mail Over Votes	In-Person Over Votes	Mail Invalid Votes	In-Person Invalid Votes	Registered Voters	Total Precincts	Counted Precincts	Candidate ID	Candidate Name	Candidate Seq Nbr	Candidate Party	Mail Votes	In-Person Votes	Total Votes
+30	"U.S. Representative, Dist I"	1	OF		7186	177	143	10	0	0	853399	223	112	4	"(D) CASE, Ed"	2		97342	2754	100096
+30	"U.S. Representative, Dist I"	1	OF		7186	177	143	10	0	0	853399	223	112	3	"(R) LAM, Adriel C."	4		26017	2668	28685
+30	"U.S. Representative, Dist I"	1	OF		7186	177	143	10	0	0	853399	223	112	1	"(G) CONLEY, Jordan S."	3		4175	353	4528
+30	"U.S. Representative, Dist I"	1	OF		7186	177	143	10	0	0	853399	223	112	2	"(N) BERNING, Nathan M."	1		1634	146	1780
+5	"U.S. Representative, Dist II"	2	OF		8514	382	148	4	0	0	853399	273	43	1	"(D) TOKUDA, Jill N."	2		104109	4260	108369
+5	"U.S. Representative, Dist II"	2	OF		8514	382	148	4	0	0	853399	273	43	2	"(R) AWA, Brenton"	1		43080	5684	48764
+43	Governor and Lieutenant Governor	3	OF		5119	256	362	25	0	0	853399	494	154	2	"(D) GREEN, Josh
+For GOVERNOR
+KAWAKAMI, Derek S.K.
+For LIEUTENANT GOVERNOR"	2		219575	7471	227046
+43	Governor and Lieutenant Governor	3	OF		5119	256	362	25	0	0	853399	494	154	1	"(R) CORDERY, Gary
+For GOVERNOR
+ANTHONY, Daniel
+For LIEUTENANT GOVERNOR"	1		67292	8686	75978
+6	"State Senator, Dist 2"	4	OF		647	73	11	0	0	0	853399	18	0	1	"(D) SAN BUENAVENTURA, Joy"	2		8766	430	9196
+6	"State Senator, Dist 2"	4	OF		647	73	11	0	0	0	853399	18	0	2	"(L) FOGEL, Frederick F."	1		1965	352	2317
+65	"State Senator, Dist 9"	5	OF		926	10	10	0	0	0	853399	16	8	1	"(D) CHANG, Stanley"	1		11211	242	11453
+65	"State Senator, Dist 9"	5	OF		926	10	10	0	0	0	853399	16	8	2	"(R) CROSWELL, David A."	2		3696	219	3915
+90	"State Senator, Dist 13"	6	OF		510	19	8	0	0	0	853399	12	6	1	"(D) NAKAMATSU, Tricia Kwai Lin"	2		7522	322	7844
+90	"State Senator, Dist 13"	6	OF		510	19	8	0	0	0	853399	12	6	2	"(R) CHRISTIAN, Wallyn Kanoelani"	1		2065	222	2287
+77	"State Senator, Dist 18 (Vacancy)"	7	OF		689	9	13	0	0	0	853399	22	11	1	"(D) BASS, Danielle Maliekekai"	1		6810	128	6938
+77	"State Senator, Dist 18 (Vacancy)"	7	OF		689	9	13	0	0	0	853399	22	11	2	"(R) KITASHIMA, Kelly Puamailani"	3		4869	250	5119
+77	"State Senator, Dist 18 (Vacancy)"	7	OF		689	9	13	0	0	0	853399	22	11	4	"(N) HANNA, Max G."	2		231	8	239
+26	"State Senator, Dist 19 (Vacancy)"	8	OF		256	6	7	1	0	0	853399	16	8	2	"(D) LAMOSAO, Rachele F."	1		4925	139	5064
+26	"State Senator, Dist 19 (Vacancy)"	8	OF		256	6	7	1	0	0	853399	16	8	1	"(R) PIERICK, Elijah"	2		2102	165	2267
+76	"State Senator, Dist 20"	9	OF		190	9	11	1	0	0	853399	16	8	1	"(R) MCDERMOTT, Bob"	1		4168	389	4557
+76	"State Senator, Dist 20"	9	OF		190	9	11	1	0	0	853399	16	8	2	"(D) OWENS, Markus"	2		4234	195	4429
+23	"State Representative, Dist 2"	10	OF		556	12	4	0	0	0	853399	8	0	1	"(D) KEOHOKAPU LEE LOY, Sue"	2		5496	229	5725
+23	"State Representative, Dist 2"	10	OF		556	12	4	0	0	0	853399	8	0	2	"(R) KENNEALY, Jonathan"	1		1278	153	1431
+71	"State Representative, Dist 3"	11	OF		328	43	5	0	0	0	853399	10	0	1	"(D) TODD, Christopher L.T."	2		4236	221	4457
+71	"State Representative, Dist 3"	11	OF		328	43	5	0	0	0	853399	10	0	2	"(L) MARTIN, Austin"	1		776	139	915
+82	"State Representative, Dist 4"	12	OF		191	21	7	0	0	0	853399	8	0	1	"(D) ILAGAN, Greggor"	1		4519	218	4737
+82	"State Representative, Dist 4"	12	OF		191	21	7	0	0	0	853399	8	0	2	"(R) WITTENHAGEN, Zak"	2		1143	187	1330
+22	"State Representative, Dist 5"	13	OF		222	13	10	1	0	0	853399	20	0	1	"(D) KAPELA, Jeanne"	1		4707	168	4875
+22	"State Representative, Dist 5"	13	OF		222	13	10	1	0	0	853399	20	0	2	"(R) MCCORMICK, Dalene"	2		1349	259	1608
+59	"State Representative, Dist 8"	14	OF		170	2	7	0	0	0	853399	8	0	2	"(D) TARNAS, David A."	2		4512	83	4595
+59	"State Representative, Dist 8"	14	OF		170	2	7	0	0	0	853399	8	0	1	"(R) PERREIRA, Monique"	1		1747	146	1893
+11	"State Representative, Dist 10"	15	OF		403	23	6	1	0	0	853399	14	0	2	"(D) MIYAKE, Tyson K."	2		5852	258	6110
+11	"State Representative, Dist 10"	15	OF		403	23	6	1	0	0	853399	14	0	1	"(R) BUMANGLAG, Travis"	1		1652	240	1892
+18	"State Representative, Dist 11"	16	OF		276	10	6	0	0	0	853399	8	0	2	"(D) AMATO, Terez (T.Amato)"	1		4908	215	5123
+18	"State Representative, Dist 11"	16	OF		276	10	6	0	0	0	853399	8	0	1	"(R) WALKER, Sheila"	2		1916	178	2094
+33	"State Representative, Dist 12"	17	OF		468	15	10	1	0	0	853399	10	0	2	"(D) YAMASHITA, Kyle T."	2		5973	166	6139
+33	"State Representative, Dist 12"	17	OF		468	15	10	1	0	0	853399	10	0	1	"(R) JOHNSON, Dan"	1		2203	164	2367
+62	"State Representative, Dist 13"	18	OF		336	16	14	0	0	0	853399	18	0	1	"(D) POEPOE, Mahina"	1		4350	299	4649
+62	"State Representative, Dist 13"	18	OF		336	16	14	0	0	0	853399	18	0	2	"(R) VANDERPOOL, Robin D."	2		950	186	1136
+27	"State Representative, Dist 14"	19	OF		110	15	15	0	0	0	853399	10	0	2	"(D) PATEL, Sne"	3		2287	249	2536
+27	"State Representative, Dist 14"	19	OF		110	15	15	0	0	0	853399	10	0	1	"(G) KIAKONA, Pa'ele"	2		1986	480	2466
+27	"State Representative, Dist 14"	19	OF		110	15	15	0	0	0	853399	10	0	3	"(R) COCHRAN, Elle"	1		942	129	1071
+20	"State Representative, Dist 16"	20	OF		354	17	8	0	0	0	853399	10	0	2	"(D) EVSLIN, Luke A."	1		4457	247	4704
+20	"State Representative, Dist 16"	20	OF		354	17	8	0	0	0	853399	10	0	1	"(R) HAZLEBECK, David"	2		1336	349	1685
+67	"State Representative, Dist 17"	21	OF		501	20	4	0	0	0	853399	12	0	1	"(D) MORIKAWA, Daynette (Dee)"	2		4393	191	4584
+67	"State Representative, Dist 17"	21	OF		501	20	4	0	0	0	853399	12	0	2	"(R) CLUETT, Misty"	1		1311	202	1513
+72	"State Representative, Dist 18"	22	OF		304	5	11	0	0	0	853399	10	5	1	"(D) WATARU, James (Jamie)"	2		4624	68	4692
+72	"State Representative, Dist 18"	22	OF		304	5	11	0	0	0	853399	10	5	2	"(R) GEDEON, Joe"	1		3960	142	4102
+55	"State Representative, Dist 20"	23	OF		443	9	10	0	0	0	853399	10	5	2	"(D) NAKADA GRANDINETTI, Tina"	2		4710	166	4876
+55	"State Representative, Dist 20"	23	OF		443	9	10	0	0	0	853399	10	5	1	"(R) ASING, David"	1		1532	101	1633
+78	"State Representative, Dist 23"	24	OF		322	10	4	0	0	0	853399	10	5	1	"(D) OLDS, Ikaika M."	2		3348	208	3556
+78	"State Representative, Dist 23"	24	OF		322	10	4	0	0	0	853399	10	5	2	"(R) MUH, Victor"	1		818	97	915
+15	"State Representative, Dist 26"	25	OF		322	23	6	0	0	0	853399	8	4	2	"(D) ROSS, Ian M.A."	1		3905	195	4100
+15	"State Representative, Dist 26"	25	OF		322	23	6	0	0	0	853399	8	4	1	"(R) SILVA, Tony"	2		1355	150	1505
+21	"State Representative, Dist 29"	26	OF		129	3	1	0	0	0	853399	8	4	1	"(D) HUSSEY, Ikaika"	2		2242	72	2314
+21	"State Representative, Dist 29"	26	OF		129	3	1	0	0	0	853399	8	4	2	"(R) ABALOS, Tess"	1		762	64	826
+53	"State Representative, Dist 30"	27	OF		65	2	2	0	0	0	853399	8	4	2	"(D) TEMPLO, Shirley Ann"	1		1477	75	1552
+53	"State Representative, Dist 30"	27	OF		65	2	2	0	0	0	853399	8	4	1	"(R) YBANEZ, Amanda"	2		696	46	742
+29	"State Representative, Dist 31"	28	OF		140	8	3	2	0	0	853399	8	4	1	"(D) ICHIYAMA, Linda"	1		3364	83	3447
+29	"State Representative, Dist 31"	28	OF		140	8	3	2	0	0	853399	8	4	2	"(R) VALDEZ, Nancy"	2		921	72	993
+85	"State Representative, Dist 32"	29	OF		172	2	5	1	0	0	853399	10	5	1	"(D) AIU, Micah Pookela Kim"	1		2616	88	2704
+85	"State Representative, Dist 32"	29	OF		172	2	5	1	0	0	853399	10	5	2	"(R) SHIMIZU, Garner M."	2		2445	109	2554
+36	"State Representative, Dist 34"	30	OF		248	8	7	0	0	0	853399	8	4	2	"(D) TAKAYAMA, Gregg"	2		4409	54	4463
+36	"State Representative, Dist 34"	30	OF		248	8	7	0	0	0	853399	8	4	1	"(R) DUPIO, Gaius, II (Kipi)"	1		1367	86	1453
+51	"State Representative, Dist 39"	31	OF		165	3	4	2	0	0	853399	12	6	1	"(D) ROSENLEE, Corey"	2		3305	114	3419
+51	"State Representative, Dist 39"	31	OF		165	3	4	2	0	0	853399	12	6	2	"(R) DEGRACIA, Daniel (Danny)"	1		1769	139	1908
+12	"State Representative, Dist 40"	32	OF		88	8	8	1	0	0	853399	8	4	2	"(D) MARTINEZ, Rose"	1		1975	96	2071
+12	"State Representative, Dist 40"	32	OF		88	8	8	1	0	0	853399	8	4	1	"(R) REYES ODA, Julie"	2		1843	189	2032
+80	"State Representative, Dist 42"	33	OF		98	9	5	0	0	0	853399	8	4	1	"(D) PARIS, Anthony Makana"	2		1963	95	2058
+80	"State Representative, Dist 42"	33	OF		98	9	5	0	0	0	853399	8	4	2	"(R) GARCIA, Diamond"	1		1766	220	1986
+92	"State Representative, Dist 43"	34	OF		1694	80	11	0	0	0	853399	8	4	1	"SOUZA, Kanani"	2		1750	105	1855
+92	"State Representative, Dist 43"	34	OF		1694	80	11	0	0	0	853399	8	4	2	"MEDEIROS, Sheila"	1		1488	207	1695
+24	"State Representative, Dist 44"	35	OF		34	0	2	1	0	0	853399	8	4	2	"(D) KILA, Darius K."	1		2190	93	2283
+24	"State Representative, Dist 44"	35	OF		34	0	2	1	0	0	853399	8	4	1	"(R) WEAVER, Charla (Kahealani)"	2		1042	153	1195
+35	"State Representative, Dist 45"	36	OF		57	1	6	0	0	0	853399	8	4	1	"(R) MURAOKA, Chris"	2		1493	150	1643
+35	"State Representative, Dist 45"	36	OF		57	1	6	0	0	0	853399	8	4	2	"(D) KAOPUA, Kalehua"	1		1404	59	1463
+46	"State Representative, Dist 46"	37	OF		141	6	3	0	0	0	853399	14	7	1	"(D) PERRUSO, Amy A."	2		3003	129	3132
+46	"State Representative, Dist 46"	37	OF		141	6	3	0	0	0	853399	14	7	2	"(R) GABRIEL, Daniel Michael"	1		1439	219	1658
+88	"State Representative, Dist 47"	38	OF		60	2	8	0	0	0	853399	8	4	1	"(D) QUINLAN, Sean"	1		2257	76	2333
+88	"State Representative, Dist 47"	38	OF		60	2	8	0	0	0	853399	8	4	2	"(R) TALAEAI, Mark"	2		1526	130	1656
+44	"State Representative, Dist 49"	39	OF		176	6	5	0	0	0	853399	12	6	2	"(D) MATAYOSHI, Scot"	1		4988	85	5073
+44	"State Representative, Dist 49"	39	OF		176	6	5	0	0	0	853399	12	6	1	"(R) RODAS, 'Ale"	2		1273	168	1441
+31	"State Representative, Dist 50"	40	OF		692	29	9	0	0	0	853399	10	5	1	"(D) LEE, Mike"	2		6508	181	6689
+31	"State Representative, Dist 50"	40	OF		692	29	9	0	0	0	853399	10	5	2	"(G) FITZGERALD, Jesse W.M."	1		1190	92	1282
+89	Maui Resident Trustee	41	OF		127662	5188	182	10	0	0	853399	494	154	2	"LINDSEY, Carmen Hulu"	2		88086	4730	92816
+89	Maui Resident Trustee	41	OF		127662	5188	182	10	0	0	853399	494	154	1	"KAPU, Ke'eaumoku"	1		76418	6510	82928
+84	Oahu Resident Trustee	42	OF		93971	4240	236	16	0	0	853399	494	154	1	"AKAKA, Kalei"	1		110972	7118	118090
+84	Oahu Resident Trustee	42	OF		93971	4240	236	16	0	0	853399	494	154	2	"WONG, Hinaleimoana (Hina)"	2		87169	5064	92233
+87	At-Large Trustee	43	OF		351044	20275	316	22	0	0	853399	494	154	2	"ANDERSON, Ikaika"	2		94829	4992	99821
+87	At-Large Trustee	43	OF		351044	20275	316	22	0	0	853399	494	154	3	"GALUTERIA, Brickwood M."	4		93589	3120	96709
+87	At-Large Trustee	43	OF		351044	20275	316	22	0	0	853399	494	154	1	"WAIHEE, John, IV"	6		93124	3537	96661
+87	At-Large Trustee	43	OF		351044	20275	316	22	0	0	853399	494	154	6	"SOUZA, Keoni"	5		90819	5547	96366
+87	At-Large Trustee	43	OF		351044	20275	316	22	0	0	853399	494	154	5	"AKINA, Adrian (Kealii)"	1		83024	6190	89214
+87	At-Large Trustee	43	OF		351044	20275	316	22	0	0	853399	494	154	4	"CRABBE, Kanekoa (Koa)"	3		69667	5587	75254
+47	"Councilmember, Dist 4"	44	OF		436	53	4	1	0	0	853399	4	0	2	"OHARA, Eileen"	2		2550	170	2720
+47	"Councilmember, Dist 4"	44	OF		436	53	4	1	0	0	853399	4	0	1	"ENRIQUEZ, Lloyd K."	1		2512	171	2683
+61	"Councilmember, Dist 5"	45	OF		403	44	6	1	0	0	853399	10	0	2	"RODENHURST, Ikaika"	2		2420	201	2621
+61	"Councilmember, Dist 5"	45	OF		403	44	6	1	0	0	853399	10	0	1	"MATSON, Shannon Lopeka"	1		2082	143	2225
+63	"Councilmember, Dist 6"	46	OF		496	36	3	1	0	0	853399	10	0	2	"AKI, Zed Kaapana"	1		2632	189	2821
+63	"Councilmember, Dist 6"	46	OF		496	36	3	1	0	0	853399	10	0	1	"ENRIQUES, Guy"	2		2578	156	2734
+3	Mayor	47	OF		919	103	36	1	0	0	853399	68	0	1	"BISSEN, Richard T., Jr."	1		21379	1730	23109
+3	Mayor	47	OF		919	103	36	1	0	0	853399	68	0	2	"SUGIMURA, Yuki Lei Kashiwa"	2		17651	1128	18779
+52	Councilmember (East Maui)	48	OF		6989	450	38	2	0	0	853399	68	0	1	"SINENCI, Shane"	2		19973	1369	21342
+52	Councilmember (East Maui)	48	OF		6989	450	38	2	0	0	853399	68	0	2	"CARROLL, Claire Kamalu"	1		12985	1141	14126
+60	Councilmember (West Maui)	49	OF		6033	342	23	3	0	0	853399	68	0	2	"PALTIN, Tamara Akiko Maile"	1		24291	1699	25990
+60	Councilmember (West Maui)	49	OF		6033	342	23	3	0	0	853399	68	0	1	"TILLMAN, Mark"	2		9638	918	10556
+19	Councilmember (Wailuku-Waihee-Waikapu)	50	OF		6374	481	37	3	0	0	853399	68	0	2	"MONIZ, Marvin"	2		21314	1293	22607
+19	Councilmember (Wailuku-Waihee-Waikapu)	50	OF		6374	481	37	3	0	0	853399	68	0	1	"LINDSEY, Ashley Awakea"	1		12260	1185	13445
+49	Councilmember (Kahului)	51	OF		6045	426	34	3	0	0	853399	68	0	2	"BATANGAN, Kauanoe"	1		18306	1156	19462
+49	Councilmember (Kahului)	51	OF		6045	426	34	3	0	0	853399	68	0	1	"KAMEKONA, Carol Lee"	2		15600	1377	16977
+8	Councilmember (South Maui)	52	OF		4315	367	30	3	0	0	853399	68	0	2	"KING, Kelly Takaya"	2		18379	1478	19857
+8	Councilmember (South Maui)	52	OF		4315	367	30	3	0	0	853399	68	0	1	"COOK, Tom"	1		17261	1114	18375
+66	Councilmember (Makawao-Haiku-Paia)	53	OF		6924	506	32	4	0	0	853399	68	0	2	"U'U-HODGINS, Nohe"	2		21019	1490	22509
+66	Councilmember (Makawao-Haiku-Paia)	53	OF		6924	506	32	4	0	0	853399	68	0	1	"CHUNG, Stevie Kathryn"	1		12010	962	12972
+14	Councilmember (Upcountry)	54	OF		5660	419	23	0	0	0	853399	68	0	1	"PAHIA, Bobby"	1		23608	1854	25462
+14	Councilmember (Upcountry)	54	OF		5660	419	23	0	0	0	853399	68	0	2	"YOKOUCHI, Jon Masaru"	2		10694	689	11383
+50	Councilmember (Lanai)	55	OF		13684	869	0	0	0	0	853399	68	0	1	"JOHNSON, Gabe"	1		26301	2093	28394
+70	Councilmember (Molokai)	56	OF		13798	880	0	0	0	0	853399	68	0	1	"RAWLINS-FERNANDEZ, Keani"	1		26187	2082	28269
+28	Mayor	57	OF		1047	73	17	0	0	0	853399	32	0	2	"RAPOZO, Mel"	2		9946	913	10859
+28	Mayor	57	OF		1047	73	17	0	0	0	853399	32	0	1	"CARVALHO, Bernard, Jr."	1		6826	499	7325
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	14	"HOLLAND, Fern Anuenue"	6		8883	687	9570
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	11	"KANESHIRO, Arryl J."	8		8732	594	9326
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	6	"OZAKI, Todd R."	11		8631	607	9238
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	13	"CORREA, Michelle Kaleiohi"	4		8399	599	8998
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	2	"BULOSAN, Addison"	2		7139	478	7617
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	8	"SMITH, Dane"	14		6523	535	7058
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	4	"APPLEGATE, Paul Noboru"	1		6297	463	6760
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	1	"SHIGEMOTO, Taylor H."	13		6256	453	6709
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	9	"DECOSTA, Billy D."	5		5632	542	6174
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	12	"COOTS, Mike"	3		4822	478	5300
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	10	"MARTIN, Umi"	9		4427	405	4832
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	5	"RAPOZO, Cheree"	12		4159	463	4622
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	7	"KAIMINAAUAO, Keola"	7		3367	501	3868
+10	Councilmember	58	OF		38643	3183	34	1	0	0	853399	32	0	3	"MATTOS, John H. (Scooby)"	10		2704	400	3104
+39	"Councilmember, Dist IV"	59	OF		3476	176	32	0	0	0	853399	38	19	1	"OZAWA, Trevor"	2		18150	402	18552
+39	"Councilmember, Dist IV"	59	OF		3476	176	32	0	0	0	853399	38	19	2	"GREGORY, Tara Malia"	1		8683	507	9190
+75	"Councilmember, Dist VI"	60	OF		2192	165	5	3	0	0	853399	34	17	2	"DOS SANTOS-TAM, Tyler"	1		12053	519	12572
+75	"Councilmember, Dist VI"	60	OF		2192	165	5	3	0	0	853399	34	17	1	"MORIHARA, Corey"	2		4058	336	4394
+38	Question #1	61	MS		23573	756	268	21	0	0	853399	494	154	2	YES	1		174299	7963	182262
+38	Question #1	61	MS		23573	756	268	21	0	0	853399	494	154	1	NO	2		94208	7698	101906
+16	Question #2	62	MS		23317	895	299	14	0	0	853399	494	154	2	YES	1		186727	8580	195307
+16	Question #2	62	MS		23317	895	299	14	0	0	853399	494	154	1	NO	2		82005	6949	88954
+79	1. Hawai'i: County Auditor's Power to Employ	63	MS		4432	247	40	4	0	0	853399	84	0	1	YES	1		25271	1617	26888
+79	1. Hawai'i: County Auditor's Power to Employ	63	MS		4432	247	40	4	0	0	853399	84	0	2	NO	2		19468	1649	21117
+81	Maui: Planning Commission Review of General Plan and Land Use Ordinances	64	MS		4914	256	31	1	0	0	853399	68	0	1	YES	1		29234	2133	31367
+81	Maui: Planning Commission Review of General Plan and Land Use Ordinances	64	MS		4914	256	31	1	0	0	853399	68	0	2	NO	2		5806	572	6378
+40	"Maui: Standardizing Deadlines for Voter Initiative, Recall, and Charter Amendment"	65	MS		5712	336	25	2	0	0	853399	68	0	1	YES	1		28790	2003	30793
+40	"Maui: Standardizing Deadlines for Voter Initiative, Recall, and Charter Amendment"	65	MS		5712	336	25	2	0	0	853399	68	0	2	NO	2		5458	621	6079
+9	Maui: Computation of Time	66	MS		5940	359	36	2	0	0	853399	68	0	2	YES	1		25048	1797	26845
+9	Maui: Computation of Time	66	MS		5940	359	36	2	0	0	853399	68	0	1	NO	2		8961	804	9765
+17	Maui: Processing of Claims	67	MS		5881	363	24	4	0	0	853399	68	0	2	YES	1		27668	1926	29594
+17	Maui: Processing of Claims	67	MS		5881	363	24	4	0	0	853399	68	0	1	NO	2		6412	669	7081
+4	Maui: Removing the English Translation of the Hawai'i State Motto	68	MS		3988	208	59	4	0	0	853399	68	0	1	NO	2		21175	1319	22494
+4	Maui: Removing the English Translation of the Hawai'i State Motto	68	MS		3988	208	59	4	0	0	853399	68	0	2	YES	1		14763	1431	16194
+73	Maui: Emergency Appropriations	69	MS		5797	325	28	1	0	0	853399	68	0	2	YES	1		24161	1709	25870
+73	Maui: Emergency Appropriations	69	MS		5797	325	28	1	0	0	853399	68	0	1	NO	2		9999	927	10926
+32	Maui: Independent Nomination Board	70	MS		6980	474	56	0	0	0	853399	68	0	1	NO	2		16613	1203	17816
+32	Maui: Independent Nomination Board	70	MS		6980	474	56	0	0	0	853399	68	0	2	YES	1		16336	1285	17621
+56	Maui: Reappointment of Members of the Board of Ethics	71	MS		5326	311	37	3	0	0	853399	68	0	1	YES	1		21983	1485	23468
+56	Maui: Reappointment of Members of the Board of Ethics	71	MS		5326	311	37	3	0	0	853399	68	0	2	NO	2		12639	1163	13802
+57	Relating to the Planning Commission's Appeals Process	72	MS		3241	137	17	2	0	0	853399	32	0	2	YES	1		9797	733	10530
+57	Relating to the Planning Commission's Appeals Process	72	MS		3241	137	17	2	0	0	853399	32	0	1	NO	2		4781	613	5394
+37	Charter Question #1	73	MS		14181	250	164	12	0	0	853399	308	154	2	YES	1		125902	5298	131200
+37	Charter Question #1	73	MS		14181	250	164	12	0	0	853399	308	154	1	NO	2		44346	2917	47263
+1	Charter Question #2	74	MS		19405	367	159	9	0	0	853399	308	154	1	YES	1		104145	5010	109155
+1	Charter Question #2	74	MS		19405	367	159	9	0	0	853399	308	154	2	NO	2		60884	3091	63975
+54	Charter Question #3	75	MS		21870	449	124	6	0	0	853399	308	154	1	YES	1		81791	4298	86089
+54	Charter Question #3	75	MS		21870	449	124	6	0	0	853399	308	154	2	NO	2		80808	3724	84532
+42	Charter Question #4	76	MS		16953	299	138	9	0	0	853399	308	154	1	NO	2		101770	5257	107027
+42	Charter Question #4	76	MS		16953	299	138	9	0	0	853399	308	154	2	YES	1		65732	2912	68644
+86	Charter Question #5	77	MS		16870	346	144	13	0	0	853399	308	154	2	NO	2		93290	4707	97997
+86	Charter Question #5	77	MS		16870	346	144	13	0	0	853399	308	154	1	YES	1		74289	3411	77700
+58	Charter Question #6	78	MS		15334	282	163	15	0	0	853399	308	154	1	YES	1		114439	4170	118609
+58	Charter Question #6	78	MS		15334	282	163	15	0	0	853399	308	154	2	NO	2		54657	4010	58667
+83	Charter Question #7	79	MS		19368	391	132	10	0	0	853399	308	154	1	YES	1		121315	5178	126493
+83	Charter Question #7	79	MS		19368	391	132	10	0	0	853399	308	154	2	NO	2		43778	2898	46676
+2	Charter Question #8	80	MS		19227	435	98	8	0	0	853399	308	154	2	YES	1		135542	5558	141100
+2	Charter Question #8	80	MS		19227	435	98	8	0	0	853399	308	154	1	NO	2		29726	2476	32202
+68	Charter Question #9	81	MS		21186	520	283	29	0	0	853399	308	154	1	NO	2		110579	6048	116627
+68	Charter Question #9	81	MS		21186	520	283	29	0	0	853399	308	154	2	YES	1		52545	1880	54425
+74	Charter Question #10	82	MS		16598	288	142	13	0	0	853399	308	154	2	YES	1		135052	5783	140835
+74	Charter Question #10	82	MS		16598	288	142	13	0	0	853399	308	154	1	NO	2		32801	2393	35194
+91	Charter Question #11	83	MS		19753	395	134	4	0	0	853399	308	154	1	YES	1		114322	4733	119055
+91	Charter Question #11	83	MS		19753	395	134	4	0	0	853399	308	154	2	NO	2		50384	3345	53729
+48	Charter Question #12	84	MS		18898	374	138	8	0	0	853399	308	154	1	YES	1		130484	5169	135653
+48	Charter Question #12	84	MS		18898	374	138	8	0	0	853399	308	154	2	NO	2		35073	2926	37999
+45	Charter Question #13	85	MS		22014	436	132	8	0	0	853399	308	154	2	YES	1		99808	4612	104420
+45	Charter Question #13	85	MS		22014	436	132	8	0	0	853399	308	154	1	NO	2		62639	3421	66060
+34	Charter Question #14	86	MS		25157	517	153	18	0	0	853399	308	154	2	YES	1		82903	3773	86676
+34	Charter Question #14	86	MS		25157	517	153	18	0	0	853399	308	154	1	NO	2		76380	4169	80549
+64	Charter Question #15	87	MS		19990	394	163	21	0	0	853399	308	154	2	YES	1		118360	4895	123255
+64	Charter Question #15	87	MS		19990	394	163	21	0	0	853399	308	154	1	NO	2		46080	3167	49247
+7	Charter Question #16	88	MS		19738	380	280	22	0	0	853399	308	154	2	NO	2		93796	5201	98997
+7	Charter Question #16	88	MS		19738	380	280	22	0	0	853399	308	154	1	YES	1		70779	2874	73653
+69	Charter Question #17	89	MS		24503	622	165	19	0	0	853399	308	154	1	YES	1		116226	4477	120703
+69	Charter Question #17	89	MS		24503	622	165	19	0	0	853399	308	154	2	NO	2		43699	3359	47058
+41	Charter Question #18	90	MS		26576	712	272	26	0	0	853399	308	154	2	NO	2		78124	5047	83171
+41	Charter Question #18	90	MS		26576	712	272	26	0	0	853399	308	154	1	YES	1		79621	2692	82313
+25	Charter Question #19	91	MS		27553	728	158	14	0	0	853399	308	154	1	YES	1		102922	4495	107417
+25	Charter Question #19	91	MS		27553	728	158	14	0	0	853399	308	154	2	NO	2		53960	3240	57200
+13	Charter Question #20	92	MS		18432	411	195	19	0	0	853399	308	154	2	YES	1		144928	6034	150962
+13	Charter Question #20	92	MS		18432	411	195	19	0	0	853399	308	154	1	NO	2		21038	2013	23051
