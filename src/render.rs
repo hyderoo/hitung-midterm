@@ -346,6 +346,8 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         if view == View::House { "on" } else { "" }
     );
 
+    let nconn = feeds_ok(feeds).count();
+    let _ = write!(o, "<div class=\"box covnote\"><b>Baca peta ini dengan hati-hati.</b> Warna hanya muncul untuk {nconn} negara bagian yang datanya sudah tersambung. Abu-abu berarti belum ada data yang tersambung, bukan Republik atau Demokrat kalah atau menang. Peta ini belum mewakili keseimbangan nasional.</div>");
     o.push_str("<div class=\"grid\"><section class=\"mapcol\">");
     o.push_str(&map_svg(reference, feeds, proj, view));
     // legend
@@ -636,7 +638,7 @@ h1{font-size:30px;line-height:1.1;margin:26px 0 6px;font-weight:700}
 .sw.d{background:var(--blue)}.sw.r{background:var(--red)}.sw.o{background:var(--purp)}
 .sw.d.lead{background:#2A3F73;box-shadow:inset 0 0 0 2px var(--blue)}.sw.r.lead{background:#6E2B2A;box-shadow:inset 0 0 0 2px var(--red)}.sw.o.lead{background:#44335C;box-shadow:inset 0 0 0 2px var(--purp)}
 .sw.tie{background:#55524C}.sw.off{background:none;border:1px dashed var(--dash)}.sw.has{background:#4A4A52}
-.box{border:1px solid var(--line);padding:16px 18px;margin-bottom:14px}.box.dashed{border:1px dashed var(--dash);font-size:13px}
+.box{border:1px solid var(--line);padding:16px 18px;margin-bottom:14px}.box.covnote{border-color:var(--dash);font-size:14px;margin:0 0 16px}.box.dashed{border:1px dashed var(--dash);font-size:13px}
 .bar{display:flex;gap:2px;height:22px;margin:10px 0}.bar i{display:block;background:var(--line);min-width:3px}
 .bar i.d{background:#2A3F73;box-shadow:inset 0 0 0 2px var(--blue)}.bar i.r{background:#6E2B2A;box-shadow:inset 0 0 0 2px var(--red)}
 .bar i.o{background:#44335C;box-shadow:inset 0 0 0 2px var(--purp)}.bar i.tie{background:#55524C}
