@@ -12,7 +12,7 @@ pub enum Party {
 
 impl Party {
     pub fn classify(raw: Option<&str>) -> Party {
-        match raw.map(|s| s.trim().to_ascii_lowercase()) {
+        match raw.map(|s| { let l = s.trim().trim_start_matches('(').trim().to_ascii_lowercase(); l.strip_prefix("prefers ").unwrap_or(&l).to_string() }) {
             Some(s) if s.starts_with("dem") => Party::Dem,
             Some(s) if s.starts_with("rep") => Party::Rep,
             _ => Party::Other,

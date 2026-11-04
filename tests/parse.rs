@@ -225,3 +225,13 @@ fn mdsbe_html_rows_and_time() {
     assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T08:44:31+00:00");
     assert!(parse_mdsbe("<html></html>", &cfg).is_err());
 }
+
+#[test]
+fn party_classify_prefers_wording() {
+    use hitung_midterm::model::Party;
+    assert_eq!(Party::classify(Some("(Prefers Democratic Party)")), Party::Dem);
+    assert_eq!(Party::classify(Some("(Prefers Republican Party)")), Party::Rep);
+    assert_eq!(Party::classify(Some("Democratic")), Party::Dem);
+    assert_eq!(Party::classify(Some("(Prefers Independent Party)")), Party::Other);
+    assert_eq!(Party::classify(None), Party::Other);
+}
