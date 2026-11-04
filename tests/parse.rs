@@ -207,6 +207,21 @@ fn orsos_html_rows_and_time() {
     assert_eq!(f.house.len(), 1);
     assert_eq!(f.house[0].district, Some(2));
     assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T08:45:00+00:00");
-    assert!(is_partial(&s), "unknown reporting status must not read as complete");
+    assert!(!is_partial(&s), "unavailable reporting status is not asserted as partial");
     assert!(parse_orsos("<html></html>", &cfg).is_err());
+}
+
+#[test]
+fn mdsbe_html_rows_and_time() {
+    use hitung_midterm::{config::SourceCfg, feed::parse_mdsbe, model::Party};
+    let cfg = SourceCfg { state: "MD".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec![], house_regex: "".into(), format: "mdsbe".into() };
+    let tr = |n: &str, p: &str, t: &str| format!("<tr>\n\t<td><div>{n}</div></td>\n\t<td>{p}</td>\n\t<td class=\"alignRight\"> 1</td><td class=\"alignRight\"> NR</td>\n\t<td class=\"alignRight\">{t}</td>\n\t<td class=\"alignRight\">44.08%</td>\n</tr>");
+    let html = format!("<div>Last refreshed: 11/04/2026 03:44:31 AM</div><h3>District 1</h3>{}{}{}{}{}<h3>District 2</h3>{}", tr("A","Democratic","119,088"), tr("B","Republican","150,615"), tr("C (Write-In)","Unaffiliated","3"), tr("Other Write-Ins","","477"), tr("<b>Totals</b>","","270,180"), tr("D","Republican","5"));
+    let f = parse_mdsbe(&html, &cfg).unwrap();
+    assert_eq!(f.house.len(), 2);
+    assert_eq!(f.house[0].candidates[0].party, Party::Rep);
+    assert_eq!(f.house[0].candidates.len(), 2);
+    assert_eq!(f.house[0].write_in, 480);
+    assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T08:44:31+00:00");
+    assert!(parse_mdsbe("<html></html>", &cfg).is_err());
 }

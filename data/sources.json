@@ -60,6 +60,15 @@
       ],
       "house_regex": "^US Representative, (\\d+)(?:st|nd|rd|th) District$",
       "format": "orsos"
+    },
+    {
+      "state": "MD",
+      "label": "Maryland State Board of Elections (hasil sementara)",
+      "human_url": "https://elections.maryland.gov/elections/2026/General_results/gen_results_2026_4.html",
+      "export_url": "https://elections.maryland.gov/elections/2026/General_results/gen_results_2026_4.html",
+      "senate_exact": [],
+      "house_regex": "",
+      "format": "mdsbe"
     }
   ]
 }

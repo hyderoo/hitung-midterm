@@ -292,6 +292,50 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
     Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate, house, refresh_note: None })
 }
 
+/// Maryland SBE results page (HTML). "Last refreshed: MM/DD/YYYY hh:mm:ss AM"
+/// is Eastern time; on Nov 4 2026 that is EST (UTC-5). The page's precinct
+/// note counts election-day precincts only, so it is not used as a
+/// reporting fraction.
+pub fn parse_mdsbe(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
+    use chrono::{FixedOffset, NaiveDateTime, TimeZone};
+    let ts = Regex::new(r"Last refreshed:\s*(\d+/\d+/\d{4} \d+:\d{2}:\d{2} [AP]M)").map_err(|e| e.to_string())?;
+    let c = ts.captures(html).ok_or("halaman tidak mencantumkan waktu pembaruan")?;
+    let naive = NaiveDateTime::parse_from_str(&c[1], "%m/%d/%Y %I:%M:%S %p").map_err(|e| e.to_string())?;
+    let source_time = FixedOffset::west_opt(5 * 3600).unwrap().from_local_datetime(&naive).single().ok_or("waktu tidak valid")?.with_timezone(&Utc);
+    let head = Regex::new(r"<h3>District (\d+)</h3>").map_err(|e| e.to_string())?;
+    let row = Regex::new(r#"(?s)<tr>\s*<td><div>(.*?)</div></td>\s*<td>([^<]*)</td>.*?<td class="alignRight">\s*([\d,]+)</td>\s*<td class="alignRight">[\d.]+%</td>"#).map_err(|e| e.to_string())?;
+    let heads: Vec<(usize, usize, u32)> = head.captures_iter(html).filter_map(|c| Some((c.get(0)?.start(), c.get(0)?.end(), c[1].parse().ok()?))).collect();
+    if heads.is_empty() {
+        return Err("format halaman tidak dikenali: tidak ada distrik".into());
+    }
+    let mut house = Vec::new();
+    for (i, (_, end, dist)) in heads.iter().enumerate() {
+        let stop = heads.get(i + 1).map(|h| h.0).unwrap_or(html.len());
+        let seg = &html[*end..stop];
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for r in row.captures_iter(seg) {
+            let name = r[1].trim();
+            if name.contains("<b>") {
+                continue; // Totals row
+            }
+            let v: u64 = r[3].replace(',', "").parse().map_err(|_| format!("angka suara tidak valid di distrik {dist}"))?;
+            if name.to_ascii_lowercase().contains("write-in") {
+                write_in += v;
+            } else {
+                candidates.push(Candidate { name: clean_name(&name.replace("&quot;", "\"")), party: Party::classify(Some(r[2].trim())), votes: v });
+            }
+        }
+        if candidates.is_empty() {
+            return Err(format!("distrik {dist}: tidak ada kandidat terbaca"));
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        house.push(Contest { state: cfg.state.clone(), label: format!("Distrik {dist}"), district: Some(*dist), candidates, write_in, precincts: None, polling_pct: None });
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate: None, house, refresh_note: None })
+}
+
 /// Per-source cache kept in the warm function instance. The source files are
 /// large (27-48 MB), so one lock per source gives single-flight refreshes, a
 /// minimum interval between origin requests, and conditional requests
@@ -350,7 +394,9 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
             .map(|d| d.with_timezone(&Utc));
         let bytes = resp.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
-        let feed = if cfg.format == "orsos" {
+        let feed = if cfg.format == "mdsbe" {
+            parse_mdsbe(&String::from_utf8_lossy(&bytes), cfg)?
+        } else if cfg.format == "orsos" {
             parse_orsos(&String::from_utf8_lossy(&bytes), cfg)?
         } else if cfg.format == "txsos" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
