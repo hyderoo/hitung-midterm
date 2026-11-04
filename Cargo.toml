@@ -1,0 +1,30 @@
+[package]
+name = "hitung-midterm"
+version = "0.1.0"
+edition = "2021"
+description = "Live count page for the 3 Nov 2026 US midterms, built from official state result feeds."
+license = "MIT"
+publish = false
+
+[lib]
+name = "hitung_midterm"
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+vercel_runtime = { version = "2" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip"] }
+regex = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde"] }
+
+[[bin]]
+name = "index"
+path = "api/index.rs"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = 3
+strip = true

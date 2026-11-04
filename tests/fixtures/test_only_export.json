@@ -1,0 +1,15 @@
+{"electionDate":"2026-11-03","electionName":"TEST ONLY - synthetic numbers, not election data","createdAt":"2026-01-01T00:00:00Z",
+ "results":{"ballotItems":[
+  {"type":"State","id":"s1","name":"Test Senate","ballotOptions":[
+    {"name":"Ann Test (I) (Dem)","voteCount":100,"politicalParty":"Dem"},
+    {"name":"Bob Test (Rep)","voteCount":60,"politicalParty":"Rep"},
+    {"name":"Write-In","voteCount":3,"politicalParty":null}]},
+  {"type":"State","id":"h1","name":"Test House (1st District)","ballotOptions":[
+    {"name":"C One","voteCount":50,"politicalParty":"Republican"},{"name":"D Two","voteCount":50,"politicalParty":"Democratic"}]},
+  {"type":"State","id":"h2","name":"Test House (2nd District)","ballotOptions":[
+    {"name":"E Three","voteCount":0,"politicalParty":"Republican"},{"name":"F Four","voteCount":0,"politicalParty":"Democratic"}]},
+  {"type":"State","id":"x","name":"Test House of Delegates (3rd District)","ballotOptions":[{"name":"G","voteCount":9,"politicalParty":"Democratic"}]}
+ ]},
+ "localResults":[
+  {"ballotItems":[{"id":"s1","precinctsReporting":2,"precinctsParticipating":3}]},
+  {"ballotItems":[{"id":"s1","precinctsReporting":1,"precinctsParticipating":1}]}]}

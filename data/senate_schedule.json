@@ -1,0 +1,148 @@
+{
+ "election_date": "2026-11-03",
+ "sources": [
+  "https://ballotpedia.org/United_States_Senate_elections%2C_2026"
+ ],
+ "contests": [
+  {
+   "state": "AL",
+   "kind": "regular"
+  },
+  {
+   "state": "AK",
+   "kind": "regular"
+  },
+  {
+   "state": "AR",
+   "kind": "regular"
+  },
+  {
+   "state": "CO",
+   "kind": "regular"
+  },
+  {
+   "state": "DE",
+   "kind": "regular"
+  },
+  {
+   "state": "FL",
+   "kind": "special"
+  },
+  {
+   "state": "GA",
+   "kind": "regular"
+  },
+  {
+   "state": "IA",
+   "kind": "regular"
+  },
+  {
+   "state": "ID",
+   "kind": "regular"
+  },
+  {
+   "state": "IL",
+   "kind": "regular"
+  },
+  {
+   "state": "KS",
+   "kind": "regular"
+  },
+  {
+   "state": "KY",
+   "kind": "regular"
+  },
+  {
+   "state": "LA",
+   "kind": "regular"
+  },
+  {
+   "state": "ME",
+   "kind": "regular"
+  },
+  {
+   "state": "MA",
+   "kind": "regular"
+  },
+  {
+   "state": "MI",
+   "kind": "regular"
+  },
+  {
+   "state": "MN",
+   "kind": "regular"
+  },
+  {
+   "state": "MS",
+   "kind": "regular"
+  },
+  {
+   "state": "MT",
+   "kind": "regular"
+  },
+  {
+   "state": "NE",
+   "kind": "regular"
+  },
+  {
+   "state": "NH",
+   "kind": "regular"
+  },
+  {
+   "state": "NJ",
+   "kind": "regular"
+  },
+  {
+   "state": "NM",
+   "kind": "regular"
+  },
+  {
+   "state": "NC",
+   "kind": "regular"
+  },
+  {
+   "state": "OH",
+   "kind": "special"
+  },
+  {
+   "state": "OK",
+   "kind": "regular"
+  },
+  {
+   "state": "OR",
+   "kind": "regular"
+  },
+  {
+   "state": "RI",
+   "kind": "regular"
+  },
+  {
+   "state": "SC",
+   "kind": "regular"
+  },
+  {
+   "state": "SD",
+   "kind": "regular"
+  },
+  {
+   "state": "TN",
+   "kind": "regular"
+  },
+  {
+   "state": "TX",
+   "kind": "regular"
+  },
+  {
+   "state": "VA",
+   "kind": "regular"
+  },
+  {
+   "state": "WV",
+   "kind": "regular"
+  },
+  {
+   "state": "WY",
+   "kind": "regular"
+  }
+ ]
+}
