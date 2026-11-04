@@ -499,7 +499,33 @@ fn nj_ambiguous_surname_is_not_merged_and_partyless_votes_kept_as_write_in() {
     let s = senate.expect("senate");
     assert_eq!(s.candidates.len(), 2);
     assert_eq!(s.candidates[0].name, "John SMITH");
-    // The ambiguous "SMITH" row is not attributed to either Smith; its votes
-    // stay counted as write-ins alongside the explicit write-in row.
-    assert_eq!(s.write_in, 10);
+    // Only the source-labelled "WRITE-IN" row counts as a write-in. The
+    // ambiguous "SMITH" row is not attributed to either Smith and is NOT
+    // re-labelled a write-in; its votes sit in the unresolved bucket. Margin
+    // (50) exceeds unresolved (7), so the lead still stands.
+    assert_eq!(s.write_in, 3);
+    assert_eq!(s.unresolved, 7);
+    assert_eq!(s.lead(), Lead::Ahead(Party::Dem));
+}
+
+
+#[test]
+fn unresolved_votes_veto_a_lead_when_they_could_change_ranking() {
+    let c = Contest {
+        state: "NJ".into(),
+        label: "Senat AS".into(),
+        district: None,
+        candidates: vec![
+            Candidate { name: "A".into(), party: Party::Dem, votes: 100 },
+            Candidate { name: "B".into(), party: Party::Rep, votes: 90 },
+        ],
+        write_in: 0,
+        unresolved: 15,
+        precincts: None,
+        polling_pct: None,
+    };
+    assert_eq!(c.lead(), Lead::Unresolved);
+    let mut c2 = c.clone();
+    c2.unresolved = 5;
+    assert_eq!(c2.lead(), Lead::Ahead(Party::Dem));
 }

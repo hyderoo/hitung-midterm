@@ -40,6 +40,9 @@ pub struct Candidate {
 pub enum Lead {
     NoVotes,
     Tie,
+    /// Votes exist, but unattributed votes are large enough that they could
+    /// change the ranking, so no leader is declared.
+    Unresolved,
     Ahead(Party),
 }
 
@@ -51,6 +54,12 @@ pub struct Contest {
     /// Named candidates, highest vote count first. Write-ins are kept apart.
     pub candidates: Vec<Candidate>,
     pub write_in: u64,
+    /// Votes a source lists under names that are neither party-labelled
+    /// candidates nor source-labelled write-ins (New Jersey counties
+    /// enumerate individual write-in names). Kept apart from write_in: their
+    /// attribution is unknown, not "write-in".
+    #[serde(default)]
+    pub unresolved: u64,
     /// Precincts reporting / participating, summed from the locality rows of
     /// the same feed. None when the feed does not provide them.
     pub precincts: Option<(u32, u32)>,
@@ -66,10 +75,12 @@ impl Contest {
             _ => return Lead::NoVotes,
         };
         if self.candidates.get(1).map(|c| c.votes) == Some(top.votes) {
-            Lead::Tie
-        } else {
-            Lead::Ahead(top.party)
+            return Lead::Tie;
         }
+        if self.unresolved > 0 && self.margin().map(|m| self.unresolved >= m).unwrap_or(true) {
+            return Lead::Unresolved;
+        }
+        Lead::Ahead(top.party)
     }
     pub fn margin(&self) -> Option<u64> {
         match (self.candidates.first(), self.candidates.get(1)) {

@@ -100,6 +100,7 @@ fn build_contest(state: &str, item: &Item, district: Option<u32>, label: String,
         district,
         candidates,
         write_in,
+        unresolved: 0,
         precincts: if seen && p > 0 { Some((r, p)) } else { None },
         polling_pct: None,
     }
@@ -176,7 +177,7 @@ pub fn parse_ncsbe(bytes: &[u8], cfg: &SourceCfg, source_time: DateTime<Utc>) ->
             (Ok(a), Ok(b)) if b > 0 => Some((a, b)),
             _ => None,
         };
-        Contest { state: cfg.state.clone(), label, district, candidates, write_in, precincts, polling_pct: None }
+        Contest { state: cfg.state.clone(), label, district, candidates, write_in, unresolved: 0, precincts, polling_pct: None }
     };
     let mut senate = None;
     let mut house = Vec::new();
@@ -235,7 +236,7 @@ pub fn parse_txsos(html: &str, cfg: &SourceCfg, source_time: DateTime<Utc>) -> R
             }
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
-        let c = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, precincts: None, polling_pct };
+        let c = Contest { state: cfg.state.clone(), label: if is_sen { "Senat AS".into() } else { format!("Distrik {}", dist.unwrap()) }, district: dist, candidates, write_in, unresolved: 0, precincts: None, polling_pct };
         if is_sen {
             senate = Some(c);
         } else {
@@ -301,7 +302,7 @@ pub fn parse_orsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
         let label = if is_sen { "Senat AS".to_string() } else { dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string()) };
-        let ct = Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts, polling_pct: None };
+        let ct = Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, unresolved: 0, precincts, polling_pct: None };
         if is_sen { senate = Some(ct); } else { house.push(ct); }
     }
     house.sort_by_key(|c| c.district);
@@ -346,7 +347,7 @@ pub fn parse_mdsbe(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
             return Err(format!("distrik {dist}: tidak ada kandidat terbaca"));
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
-        house.push(Contest { state: cfg.state.clone(), label: format!("Distrik {dist}"), district: Some(*dist), candidates, write_in, precincts: None, polling_pct: None });
+        house.push(Contest { state: cfg.state.clone(), label: format!("Distrik {dist}"), district: Some(*dist), candidates, write_in, unresolved: 0, precincts: None, polling_pct: None });
     }
     house.sort_by_key(|c| c.district);
     Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time, senate: None, house, refresh_note: None })
@@ -405,7 +406,7 @@ pub fn parse_alsos(html: &str, cfg: &SourceCfg) -> Result<StateFeed, String> {
         }
         candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
         let label = if is_sen { "Senat AS".to_string() } else { dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string()) };
-        let ct = Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts: None, polling_pct: None };
+        let ct = Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, unresolved: 0, precincts: None, polling_pct: None };
         if is_sen { senate = Some(ct); } else { house.push(ct); }
     }
     house.sort_by_key(|c| c.district);
@@ -480,6 +481,7 @@ pub fn parse_hisummary(text: &str, cfg: &SourceCfg, lm: DateTime<Utc>) -> Result
             district: Some(dist),
             candidates: Vec::new(),
             write_in: 0,
+            unresolved: 0,
             precincts: if total > 0 { Some((counted, total)) } else { None },
             polling_pct: None,
         });
@@ -565,7 +567,7 @@ pub async fn parse_vtenr(client: &reqwest::Client, elections: &[u8], cfg: &Sourc
         if candidates.is_empty() {
             return Err(format!("kontes {name}: tidak ada kandidat terbaca"));
         }
-        house.push(Contest { state: cfg.state.clone(), label: "Distrik at-large".into(), district: None, candidates, write_in, precincts, polling_pct: None });
+        house.push(Contest { state: cfg.state.clone(), label: "Distrik at-large".into(), district: None, candidates, write_in, unresolved: 0, precincts, polling_pct: None });
     }
     if house.is_empty() {
         return Err("format berkas tidak dikenali: tidak ada kontes DPR".into());
@@ -650,7 +652,7 @@ pub async fn parse_inenr(client: &reqwest::Client, settings: &[u8], cfg: &Source
             return Err(format!("kontes {title}: tidak ada kandidat terbaca"));
         }
         let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
-        house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts: None, polling_pct: None });
+        house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, unresolved: 0, precincts: None, polling_pct: None });
     }
     if house.is_empty() {
         return Err("format berkas tidak dikenali: tidak ada kontes DPR".into());
@@ -722,11 +724,11 @@ pub fn scxlsx_feed(xlsx: &[u8], cfg: &SourceCfg, lm: DateTime<Utc>) -> Result<St
             return Err(format!("kontes {title}: tidak ada kandidat terbaca"));
         }
         if is_sen {
-            senate = Some(Contest { state: cfg.state.clone(), label: title.clone(), district: None, candidates, write_in, precincts: None, polling_pct: None });
+            senate = Some(Contest { state: cfg.state.clone(), label: title.clone(), district: None, candidates, write_in, unresolved: 0, precincts: None, polling_pct: None });
         } else {
             let dist = cap.and_then(|c| c.get(1)).and_then(|g| g.as_str().parse::<u32>().ok());
             let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
-            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts: None, polling_pct: None });
+            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, unresolved: 0, precincts: None, polling_pct: None });
         }
     }
     if senate.is_none() && house.is_empty() {
@@ -832,11 +834,11 @@ pub fn parse_desocrata(bytes: &[u8], cfg: &SourceCfg) -> Result<StateFeed, Strin
         let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
         let cand = Candidate { name, party, votes };
         if is_sen {
-            senate.get_or_insert_with(|| Contest { state: cfg.state.clone(), label: office.to_string(), district: None, candidates: vec![], write_in: 0, precincts: None, polling_pct: None }).candidates.push(cand);
+            senate.get_or_insert_with(|| Contest { state: cfg.state.clone(), label: office.to_string(), district: None, candidates: vec![], write_in: 0, unresolved: 0, precincts: None, polling_pct: None }).candidates.push(cand);
         } else if let Some(ct) = house.iter_mut().find(|c: &&mut Contest| c.district == dist) {
             ct.candidates.push(cand);
         } else {
-            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates: vec![cand], write_in: 0, precincts: None, polling_pct: None });
+            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates: vec![cand], write_in: 0, unresolved: 0, precincts: None, polling_pct: None });
         }
     }
     for ct in house.iter_mut().chain(senate.iter_mut()) {
@@ -927,11 +929,11 @@ pub fn totalresults_feed(list: &[u8], info: &[u8], search: &[u8], results: &[u8]
             _ => None,
         };
         if is_sen {
-            senate = Some(Contest { state: cfg.state.clone(), label: cname.to_string(), district: None, candidates, write_in, precincts, polling_pct: None });
+            senate = Some(Contest { state: cfg.state.clone(), label: cname.to_string(), district: None, candidates, write_in, unresolved: 0, precincts, polling_pct: None });
         } else {
             let dist = cap.and_then(|c| c.get(1)).and_then(|g| g.as_str().parse::<u32>().ok());
             let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
-            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts, polling_pct: None });
+            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, unresolved: 0, precincts, polling_pct: None });
         }
     }
     if senate.is_none() && house.is_empty() {
@@ -1205,12 +1207,18 @@ pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(O
         }
         // Counties that enumerate write-ins list them as party-less names.
         // Real candidates are the ones at least one county gives a party.
+        // Only source-labelled write-in rows count as write-ins; any other
+        // unresolved name keeps its votes in a separate bucket that can veto
+        // a leader declaration, never re-labelled as a write-in by inference.
+        let wr_re = Regex::new(r"(?i)^write[-\s]?in\b").ok()?;
         let mut write_in = 0u64;
+        let mut unresolved = 0u64;
         let mut candidates: Vec<Candidate> = Vec::new();
         for (_, c) in agg.candidates {
             match c.party {
                 Some(p) => candidates.push(Candidate { name: c.display, party: Party::classify(Some(&p)), votes: c.votes }),
-                None => write_in += c.votes,
+                None if wr_re.is_match(&c.display) => write_in += c.votes,
+                None => unresolved += c.votes,
             }
         }
         if candidates.is_empty() {
@@ -1223,6 +1231,7 @@ pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(O
             district,
             candidates,
             write_in,
+            unresolved,
             precincts: Some((agg.pr, agg.tp)),
             polling_pct: None,
         })

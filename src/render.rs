@@ -84,6 +84,7 @@ impl Tally {
             Lead::Ahead(Party::Rep) => self.rep += 1,
             Lead::Ahead(Party::Other) => self.other += 1,
             Lead::Tie => self.tie += 1,
+            Lead::Unresolved => self.tie += 1,
             Lead::NoVotes => self.novotes += 1,
         }
     }
@@ -121,6 +122,7 @@ fn lead_text(l: Lead) -> &'static str {
         Lead::Ahead(Party::Rep) => "Republik unggul sementara",
         Lead::Ahead(Party::Other) => "Calon lain unggul sementara",
         Lead::Tie => "Suara imbang",
+        Lead::Unresolved => "Belum dapat ditentukan (ada suara tanpa atribusi)",
         Lead::NoVotes => "Belum ada suara",
     }
 }
@@ -243,6 +245,7 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                     let cls = match c.lead() {
                         Lead::Ahead(p) => pcls(p),
                         Lead::Tie => "tie",
+                        Lead::Unresolved => "tie",
                         Lead::NoVotes => "none",
                     };
                     (cls, format!(
@@ -478,6 +481,9 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
                 }
                 if c.write_in > 0 {
                     let _ = write!(o, "<span class=\"cand mute\">Tulis tangan (write-in) <b>{}</b></span>", num(c.write_in));
+                }
+                if c.unresolved > 0 {
+                    let _ = write!(o, "<span class=\"cand mute\">Suara tanpa atribusi kandidat (nama tanpa label partai dari sumber) <b>{}</b></span>", num(c.unresolved));
                 }
                 if let Some(mg) = c.margin() {
                     let _ = write!(o, "<small class=\"mute\">Selisih {} suara. {}.</small>", num(mg), precinct_line(c));
