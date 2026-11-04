@@ -399,3 +399,20 @@ fn desocrata_real_file() {
     assert_eq!(f.house[0].candidates[0].name, "SARAH MCBRIDE");
     assert_eq!(f.house[0].candidates[0].votes, 243467);
 }
+
+#[test]
+fn sc_xlsx_real_file() {
+    let cfg = SourceCfg { state: "SC".into(), label: "x".into(), human_url: "h".into(), export_url: "e".into(), senate_exact: vec!["U.S.  Senate (Vote For 1)".into()], house_regex: r"^U\.S\.\s+House of Representatives, District\s+(\d+) \(Vote For 1\)$".into(), format: "scxlsx".into(), suspended: None, extra_urls: vec![], head_regex: None };
+    let lm = chrono::DateTime::parse_from_rfc2822("Wed, 04 Nov 2026 05:00:00 GMT").unwrap().with_timezone(&chrono::Utc);
+    let f = scxlsx_feed(include_bytes!("fixtures/sc_results.xlsx"), &cfg, lm).unwrap();
+    assert_eq!(f.source_time.to_rfc3339(), "2026-11-04T05:00:00+00:00");
+    let s = f.senate.unwrap();
+    assert_eq!(s.candidates[0].name, "Annie Andrews");
+    assert_eq!(s.candidates[0].party, Party::Dem);
+    assert_eq!(s.candidates[0].votes, 1034418);
+    assert_eq!(s.candidates[1].name, "Darline Graham");
+    assert_eq!(s.candidates[1].party, Party::Rep);
+    assert_eq!(s.candidates[1].votes, 948133);
+    assert_eq!(f.house.len(), 7);
+    assert_eq!(f.house[0].district, Some(1));
+}

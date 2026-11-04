@@ -202,6 +202,17 @@
       ],
       "house_regex": "^Representative In Congress$",
       "format": "desocrata"
+    },
+    {
+      "state": "SC",
+      "label": "South Carolina Election Commission (snapshot xlsx)",
+      "human_url": "https://scvotes.gov/2026-general-election-results/",
+      "export_url": "https://scvotes.gov/2026-general-election-results/",
+      "senate_exact": [
+        "U.S.  Senate (Vote For 1)"
+      ],
+      "house_regex": "^U\\.S\\.\\s+House of Representatives, District\\s+(\\d+) \\(Vote For 1\\)$",
+      "format": "scxlsx"
     }
   ]
 }

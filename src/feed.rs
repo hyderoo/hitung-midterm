@@ -661,6 +661,115 @@ pub async fn parse_inenr(client: &reqwest::Client, settings: &[u8], cfg: &Source
 
 
 
+
+/// South Carolina: scvotes.gov posts timestamped xlsx snapshots of statewide
+/// results. export_url is the results page; the latest timestamped
+/// *-General-Election-Results.xlsx link wins. Each contest sheet has the
+/// contest title in row 1, candidate names (party-prefixed) in row 2, vote
+/// columns in row 3 (7 per candidate, the last labeled "Total Votes"), one
+/// row per county, and a "Total:" footer. The xlsx Last-Modified is the
+/// source time.
+pub fn scxlsx_feed(xlsx: &[u8], cfg: &SourceCfg, lm: DateTime<Utc>) -> Result<StateFeed, String> {
+    use calamine::{Reader, Xlsx};
+    use std::io::Cursor;
+    let mut wb: Xlsx<_> = Xlsx::new(Cursor::new(xlsx)).map_err(|e| format!("berkas xlsx tidak terbaca: {e}"))?;
+    let house_re = Regex::new(&cfg.house_regex).map_err(|e| e.to_string())?;
+    let prefix_re = Regex::new(r"^([A-Z]{2,5})\s+(.+)$").map_err(|e| e.to_string())?;
+    let names = wb.sheet_names().to_vec();
+    let mut senate = None;
+    let mut house = Vec::new();
+    for sheet in names {
+        let range = match wb.worksheet_range(&sheet) {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+        let rows: Vec<Vec<String>> = range
+            .rows()
+            .map(|r| r.iter().map(|c| c.to_string()).collect())
+            .collect();
+        if rows.len() < 4 {
+            continue;
+        }
+        let title = rows[0][0].trim().to_string();
+        let is_sen = cfg.senate_exact.iter().any(|n| n == &title);
+        let cap = house_re.captures(&title);
+        if !is_sen && cap.is_none() {
+            continue;
+        }
+        let cand_names: Vec<String> = rows[1].iter().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+        let total_cols: Vec<usize> = rows[2].iter().enumerate().filter(|(_, v)| v.trim() == "Total Votes").map(|(i, _)| i).collect();
+        if cand_names.is_empty() || cand_names.len() != total_cols.len() {
+            return Err(format!("kontes {title}: tata letak kolom tidak dikenali"));
+        }
+        let total_row = rows.iter().find(|r| r.first().map(|first| first.trim_matches(|ch: char| !ch.is_alphabetic())) == Some("Total"));
+        let total_row = total_row.ok_or_else(|| format!("kontes {title}: baris Total tidak ditemukan"))?;
+        let mut candidates = Vec::new();
+        let mut write_in = 0u64;
+        for (name, col) in cand_names.iter().zip(total_cols.iter()) {
+            let votes = total_row.get(*col).and_then(|v| v.replace(',', "").parse::<u64>().ok()).unwrap_or(0);
+            if name.eq_ignore_ascii_case("write-in") || name.eq_ignore_ascii_case("write in") {
+                write_in += votes;
+                continue;
+            }
+            let (party, clean) = match prefix_re.captures(name) {
+                Some(c) => (Party::classify(Some(&c[1])), c[2].trim().to_string()),
+                None => (Party::Other, name.clone()),
+            };
+            candidates.push(Candidate { name: clean, party, votes });
+        }
+        candidates.sort_by(|a, b| b.votes.cmp(&a.votes));
+        if candidates.is_empty() {
+            return Err(format!("kontes {title}: tidak ada kandidat terbaca"));
+        }
+        if is_sen {
+            senate = Some(Contest { state: cfg.state.clone(), label: title.clone(), district: None, candidates, write_in, precincts: None, polling_pct: None });
+        } else {
+            let dist = cap.and_then(|c| c.get(1)).and_then(|g| g.as_str().parse::<u32>().ok());
+            let label = dist.map(|d| format!("Distrik {d}")).unwrap_or_else(|| "Distrik at-large".to_string());
+            house.push(Contest { state: cfg.state.clone(), label, district: dist, candidates, write_in, precincts: None, polling_pct: None });
+        }
+    }
+    if senate.is_none() && house.is_empty() {
+        return Err("format berkas tidak dikenali: tidak ada kontes federal".into());
+    }
+    house.sort_by_key(|c| c.district);
+    Ok(StateFeed { state: cfg.state.clone(), source_label: cfg.label.clone(), human_url: cfg.human_url.clone(), export_url: cfg.export_url.clone(), source_time: lm, senate, house, refresh_note: None })
+}
+
+pub async fn parse_scxlsx(client: &reqwest::Client, html: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> {
+    let text = String::from_utf8_lossy(html);
+    let link_re = Regex::new(r#"href="(https://scvotes\.gov/[^"]*?(\d{4})-(\d{2})-(\d{2})-([0-9-]+)(AM|PM)-General-Election-Results\.xlsx)""#).map_err(|e| e.to_string())?;
+    let mut best: Option<(u32, String)> = None;
+    for c in link_re.captures_iter(&text) {
+        let url = c[1].to_string();
+        let digits: String = c[5].chars().filter(|ch| ch.is_ascii_digit()).collect();
+        let (hh, mm) = match digits.len() {
+            1 | 2 => (digits.parse::<u32>().unwrap_or(0), 0),
+            3 => (digits[..1].parse::<u32>().unwrap_or(0), digits[1..].parse::<u32>().unwrap_or(0)),
+            _ => (digits[..2].parse::<u32>().unwrap_or(0), digits[2..].parse::<u32>().unwrap_or(0)),
+        };
+        let h24 = (if &c[6] == "PM" && hh != 12 { hh + 12 } else if &c[6] == "AM" && hh == 12 { 0 } else { hh }) % 24;
+        let key = h24 * 60 + mm;
+        if best.as_ref().map(|(k, _)| key > *k).unwrap_or(true) {
+            best = Some((key, url));
+        }
+    }
+    let (_, url) = best.ok_or("tidak ada tautan hasil xlsx di halaman")?;
+    let resp = client.get(&url).send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+    if !resp.status().is_success() {
+        return Err(format!("sumber membalas HTTP {}", resp.status().as_u16()));
+    }
+    let lm = resp
+        .headers()
+        .get("last-modified")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
+        .map(|d| d.with_timezone(&Utc))
+        .ok_or("sumber tidak mencantumkan Last-Modified")?;
+    let bytes = resp.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
+    scxlsx_feed(&bytes, cfg, lm)
+}
+
 /// Delaware official results via the state open-data portal (Socrata). The
 /// ENR page elections.delaware.gov/results/enr/GE2026.html links this exact
 /// query. One row per candidate with statewide totals; data_as_of is Eastern
@@ -929,6 +1038,8 @@ pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResul
             parse_totalresults(client, &bytes, cfg).await?
         } else if cfg.format == "desocrata" {
             parse_desocrata(&bytes, cfg)?
+        } else if cfg.format == "scxlsx" {
+            parse_scxlsx(client, &bytes, cfg).await?
         } else if cfg.format == "txsos" {
             let t = lm.ok_or_else(|| "sumber tidak mencantumkan Last-Modified".to_string())?;
             parse_txsos(&String::from_utf8_lossy(&bytes), cfg, t)?
