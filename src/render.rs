@@ -220,7 +220,7 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                             (Party::Other, true) => "po conflict",
                         },
                         format!(
-                            "{}: {} proyeksi menang (kompilasi media di Wikipedia){}",
+                            "{}: {} entri pemenang di Wikipedia (belum diverifikasi){}",
                             s.name,
                             pp.label(),
                             if conflict { ". Hitungan resmi sementara menunjukkan pemimpin berbeda" } else { "" }
@@ -259,7 +259,7 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                 _ => match proj.and_then(|p| p.house.get(code)) {
                     Some(&(d, r)) => (
                         "band",
-                        format!("{}: proyeksi menang (kompilasi media di Wikipedia): Demokrat {}, Republik {} dari {} kursi", s.name, d, r, reference.house_seats.get(code).copied().unwrap_or(0)),
+                        format!("{}: entri pemenang di Wikipedia (belum diverifikasi): Demokrat {}, Republik {} dari {} kursi", s.name, d, r, reference.house_seats.get(code).copied().unwrap_or(0)),
                     ),
                     None => ("none", format!("{}: data belum tersedia", s.name)),
                 },
@@ -323,7 +323,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         wib(now)
     );
     let title = if view == View::Senate { "Hasil Senat AS" } else { "Hasil DPR AS" };
-    let _ = write!(o, "<h1>{title}</h1><p class=\"sub\">Pemilu sela AS, 3 November 2026. Hitungan sementara dari situs hasil resmi negara bagian, ditambah proyeksi menang dari kompilasi media. Keduanya belum resmi dan ditandai terpisah.</p>");
+    let _ = write!(o, "<h1>{title}</h1><p class=\"sub\">Pemilu sela AS, 3 November 2026. Hitungan sementara dari situs hasil resmi negara bagian, ditambah entri pemenang dari Wikipedia yang belum diverifikasi. Keduanya belum resmi dan ditandai terpisah.</p>");
     let _ = write!(
         o,
         "<nav class=\"tabs\"><a href=\"/?view=senat\" class=\"{}\">Senat</a><a href=\"/?view=dpr\" class=\"{}\">DPR</a></nav>",
@@ -348,13 +348,13 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
     }
     if proj.is_some() {
         if view == View::Senate {
-            o.push_str("<li><i class=\"sw pd\"></i><i class=\"sw pr\"></i><i class=\"sw po\"></i>Proyeksi menang: kompilasi laporan media (lewat Wikipedia), bukan hitungan resmi</li>");
+            o.push_str("<li><i class=\"sw pd\"></i><i class=\"sw pr\"></i><i class=\"sw po\"></i>Entri pemenang di Wikipedia: belum diverifikasi ke sumber medianya, bukan hitungan resmi</li>");
             o.push_str("<li><i class=\"sw d lead conflict\"></i>Garis putus-putus putih: hitungan resmi sementara menunjuk pemimpin berbeda dari proyeksi</li>");
         } else {
-            o.push_str("<li><i class=\"sw pd\"></i><i class=\"sw pr\"></i>Pita warna terang = kursi yang sudah diproyeksikan menang (Wikipedia). Pita gelap = unggul sementara dari hitungan resmi. Negara bagian dengan hitungan resmi memakai pita gelap.</li>");
+            o.push_str("<li><i class=\"sw pd\"></i><i class=\"sw pr\"></i>Pita warna terang = kursi yang sudah tercatat menang di Wikipedia (belum diverifikasi). Pita gelap = unggul sementara dari hitungan resmi. Negara bagian dengan hitungan resmi memakai pita gelap.</li>");
         }
     } else {
-        o.push_str("<li class=\"mute\">Proyeksi menang: sumber proyeksi gagal dibaca saat ini, jadi tidak ditampilkan.</li>");
+        o.push_str("<li class=\"mute\">Entri Wikipedia: sumber gagal dibaca saat ini, jadi tidak ditampilkan.</li>");
     }
     o.push_str("</ul></section>");
 
@@ -384,7 +384,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         ));
         let _ = write!(
             o,
-            "<p class=\"stat\"><b>Proyeksi menang</b> <small class=\"mute\">(kompilasi media, Wikipedia)</small><br><span class=\"mute\">{}</span></p>",
+            "<p class=\"stat\"><b>Entri pemenang Wikipedia</b> <small class=\"mute\">(belum diverifikasi)</small><br><span class=\"mute\">{}</span></p>",
             if proj.is_some() { format!("Demokrat {} | Republik {} | Lainnya {}", pj.dem, pj.rep, pj.other) } else { "Tidak tersedia".to_string() }
         );
         let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi, belum ada proyeksi)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ol.dem, ol.rep, ol.other, if ol.tie > 0 { format!(" | Imbang {}", ol.tie) } else { String::new() }, nod + ol.novotes);
@@ -406,7 +406,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         o.push_str(&seat_bar(&[("pd", hp_d), ("pr", hp_r), ("d lead", ht.dem), ("r lead", ht.rep), ("o lead", ht.other), ("tie", ht.tie), ("none", nodata)], house_total));
         let _ = write!(
             o,
-            "<p class=\"stat\"><b>Proyeksi menang</b> <small class=\"mute\">(kompilasi media, Wikipedia; {} negara bagian tanpa hitungan resmi di sini)</small><br><span class=\"mute\">{}</span></p>",
+            "<p class=\"stat\"><b>Entri pemenang Wikipedia</b> <small class=\"mute\">(belum diverifikasi; {} negara bagian tanpa hitungan resmi di sini)</small><br><span class=\"mute\">{}</span></p>",
             hp_states,
             if proj.is_some() { format!("Demokrat {} | Republik {}", hp_d, hp_r) } else { "Tidak tersedia".to_string() }
         );
@@ -415,7 +415,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
     let chamber = if view == View::Senate { "Senat" } else { "DPR" };
     let _ = write!(
         o,
-        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Total kursi kamar bergantung pada cara menghitung senator independen yang bergabung dengan satu fraksi dan pada waktu pengambilan data, dan sumber yang kami pakai tidak mencantumkan kutipan per pemilihan. Angka di atas hanya jumlah pemilihan yang sudah ada proyeksi atau hitungan.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
+        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Total kursi kamar bergantung pada cara menghitung senator independen yang bergabung dengan satu fraksi dan pada waktu pengambilan data, dan sumber yang kami pakai tidak mencantumkan kutipan per pemilihan. Angka di atas hanya jumlah pemilihan yang sudah ada entri Wikipedia atau hitungan resmi.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
         ok.len(),
         if connected.is_empty() { "belum ada".to_string() } else { connected }
     );
@@ -438,7 +438,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
                     let conflict = matches!(c.lead(), Lead::Ahead(q) if q != *p);
                     let _ = write!(
                         o,
-                        "<small class=\"mute\">Proyeksi menang (Wikipedia, dari media): {}.{}</small>",
+                        "<small class=\"mute\">Entri pemenang di Wikipedia (belum diverifikasi): {}.{}</small>",
                         p.label(),
                         if conflict { " Tidak sinkron dengan hitungan resmi sementara di bawah." } else { "" }
                     );
@@ -523,10 +523,10 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         },
         match proj {
             Some(p) => format!(
-                "Proyeksi menang: kompilasi sukarelawan di Wikipedia dari laporan media (CC BY-SA 4.0), disunting manual sehingga bisa terlambat atau keliru. Artikel Senat <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>, artikel DPR <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>. Artikel terakhir disunting {} ({}). Itu waktu penyuntingan di Wikipedia, bukan waktu data hasil, dan tiap hasil belum kami telusuri ke kutipan medianya. Jika proyeksi dan hitungan resmi berbeda, keduanya ditampilkan.",
+                "Entri pemenang di Wikipedia: ditulis sukarelawan (CC BY-SA 4.0), belum diverifikasi ke laporan media per pemilihan, disunting manual sehingga bisa terlambat atau keliru. Artikel Senat <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>, artikel DPR <a href=\"https://en.wikipedia.org/w/index.php?title={}&amp;oldid={}\" rel=\"noopener\">revisi {}</a>. Artikel terakhir disunting {} ({}). Itu waktu penyuntingan di Wikipedia, bukan waktu data hasil, dan tiap hasil belum kami telusuri ke kutipan medianya. Jika proyeksi dan hitungan resmi berbeda, keduanya ditampilkan.",
                 SENATE_TITLE, p.senate_rev, p.senate_rev, HOUSE_TITLE, p.house_rev, p.house_rev, wib(p.revision_time), age(now, p.revision_time)
             ),
-            None => format!("Proyeksi menang: sumber proyeksi gagal dibaca saat halaman ini dibuat{}.", match projr { ProjResult::Failed(e) => format!(" ({})", esc(e)), _ => String::new() }),
+            None => format!("Entri Wikipedia: sumber gagal dibaca saat halaman ini dibuat{}.", match projr { ProjResult::Failed(e) => format!(" ({})", esc(e)), _ => String::new() }),
         }
     );
     o.push_str("</footer></div></body></html>");

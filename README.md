@@ -5,7 +5,7 @@ A live count page for the 3 November 2026 US midterm elections, written in Rust 
 It shows two clearly separated layers:
 
 1. **Official unofficial counts**: vote counts read directly from official state result feeds ("unggul sementara" = ahead on votes counted so far).
-2. **Projected winners**: race calls compiled by Wikipedia editors from news reports (CC BY-SA 4.0), read through the MediaWiki API with the revision id and timestamp shown on the page. This layer is volunteer-edited and can lag or be wrong. Where it disagrees with an official feed, the map and the state row say so.
+2. **Unverified Wikipedia entries**: winner entries compiled by Wikipedia editors from news reports (CC BY-SA 4.0), read through the MediaWiki API with the revision id and timestamp shown on the page. This layer is volunteer-edited and can lag or be wrong. Where it disagrees with an official feed, the map and the state row say so.
 
 The site makes no projections of its own, and never infers chamber control. National totals are shown only as "according to Wikipedia".
 
