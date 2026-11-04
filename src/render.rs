@@ -346,8 +346,9 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         if view == View::House { "on" } else { "" }
     );
 
-    let nconn = feeds_ok(feeds).count();
-    let _ = write!(o, "<div class=\"box covnote\"><b>Baca peta ini dengan hati-hati.</b> Warna hanya muncul untuk {nconn} negara bagian yang datanya sudah tersambung. Abu-abu berarti belum ada data yang tersambung, bukan Republik atau Demokrat kalah atau menang. Peta ini belum mewakili keseimbangan nasional.</div>");
+    let nconn = if view == View::Senate { feeds_ok(feeds).filter(|f| f.senate.is_some()).count() } else { feeds_ok(feeds).filter(|f| !f.house.is_empty()).count() };
+    let kind = if view == View::Senate { "Senat" } else { "DPR" };
+    let _ = write!(o, "<div class=\"box covnote\"><b>Baca peta ini dengan hati-hati.</b> Warna di tab ini hanya muncul untuk {nconn} negara bagian yang hasil {kind} sudah tersambung. Abu-abu berarti belum ada data yang tersambung, bukan Republik atau Demokrat kalah atau menang. Peta ini belum mewakili keseimbangan nasional.</div>");
     o.push_str("<div class=\"grid\"><section class=\"mapcol\">");
     o.push_str(&map_svg(reference, feeds, proj, view));
     // legend
