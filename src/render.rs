@@ -354,7 +354,6 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             o.push_str("<li><i class=\"sw pd\"></i><i class=\"sw pr\"></i>Pita warna terang = kursi yang sudah tercatat menang di Wikipedia (belum diverifikasi). Pita gelap = unggul sementara dari hitungan resmi. Negara bagian dengan hitungan resmi memakai pita gelap.</li>");
         }
     } else {
-        o.push_str("<li class=\"mute\">Entri Wikipedia: sumber gagal dibaca saat ini, jadi tidak ditampilkan.</li>");
     }
     o.push_str("</ul></section>");
 
@@ -377,17 +376,19 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             }
         }
         let have = senate_total - nod;
-        let _ = write!(o, "<div class=\"box\"><b>{} dari {} pemilihan kursi Senat sudah ada proyeksi atau hitungan</b>", have, senate_total);
+        let _ = write!(o, "<div class=\"box\"><b>{} dari {} pemilihan kursi Senat sudah ada hitungan resmi</b>", have, senate_total);
         o.push_str(&seat_bar(
             &[("pd", pj.dem), ("pr", pj.rep), ("po", pj.other), ("d lead", ol.dem), ("r lead", ol.rep), ("o lead", ol.other), ("tie", ol.tie), ("none", ol.novotes + nod)],
             senate_total,
         ));
+        if proj.is_some() {
         let _ = write!(
             o,
             "<p class=\"stat\"><b>Entri pemenang Wikipedia</b> <small class=\"mute\">(belum diverifikasi)</small><br><span class=\"mute\">{}</span></p>",
             if proj.is_some() { format!("Demokrat {} | Republik {} | Lainnya {}", pj.dem, pj.rep, pj.other) } else { "Tidak tersedia".to_string() }
         );
-        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi, belum ada proyeksi)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ol.dem, ol.rep, ol.other, if ol.tie > 0 { format!(" | Imbang {}", ol.tie) } else { String::new() }, nod + ol.novotes);
+        }
+        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi sementara)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ol.dem, ol.rep, ol.other, if ol.tie > 0 { format!(" | Imbang {}", ol.tie) } else { String::new() }, nod + ol.novotes);
     } else {
         for (code, total) in &reference.house_seats {
             let off = ok.iter().find(|f| &f.state == code && !f.house.is_empty());
@@ -401,21 +402,23 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             }
         }
         let have = ht.with_data() + h_proj_seats;
-        let _ = write!(o, "<div class=\"box\"><b>{} dari {} kursi DPR sudah ada proyeksi atau hitungan</b>", have, house_total);
+        let _ = write!(o, "<div class=\"box\"><b>{} dari {} kursi DPR sudah ada hitungan resmi</b>", have, house_total);
         let nodata = house_total.saturating_sub(have) + ht.novotes;
         o.push_str(&seat_bar(&[("pd", hp_d), ("pr", hp_r), ("d lead", ht.dem), ("r lead", ht.rep), ("o lead", ht.other), ("tie", ht.tie), ("none", nodata)], house_total));
+        if proj.is_some() {
         let _ = write!(
             o,
             "<p class=\"stat\"><b>Entri pemenang Wikipedia</b> <small class=\"mute\">(belum diverifikasi; {} negara bagian tanpa hitungan resmi di sini)</small><br><span class=\"mute\">{}</span></p>",
             hp_states,
             if proj.is_some() { format!("Demokrat {} | Republik {}", hp_d, hp_r) } else { "Tidak tersedia".to_string() }
         );
-        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi, belum ada proyeksi)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ht.dem, ht.rep, ht.other, if ht.tie > 0 { format!(" | Imbang {}", ht.tie) } else { String::new() }, nodata);
+        }
+        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi sementara)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ht.dem, ht.rep, ht.other, if ht.tie > 0 { format!(" | Imbang {}", ht.tie) } else { String::new() }, nodata);
     }
     let chamber = if view == View::Senate { "Senat" } else { "DPR" };
     let _ = write!(
         o,
-        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Total kursi kamar bergantung pada cara menghitung senator independen yang bergabung dengan satu fraksi dan pada waktu pengambilan data, dan sumber yang kami pakai tidak mencantumkan kutipan per pemilihan. Angka di atas hanya jumlah pemilihan yang sudah ada entri Wikipedia atau hitungan resmi.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
+        "<div class=\"box dashed\"><b>Total nasional {chamber}</b><br><span class=\"mute\">Tidak ditampilkan. Total kursi kamar bergantung pada cara menghitung senator independen yang bergabung dengan satu fraksi dan pada waktu pengambilan data, dan sumber yang kami pakai tidak mencantumkan kutipan per pemilihan. Angka di atas hanya jumlah pemilihan yang sudah ada hitungan resmi.</span><br><span class=\"mute\">Kendali kamar tidak disimpulkan oleh situs ini. Hitungan resmi baru tersambung dari {} negara bagian ({}).</span></div>",
         ok.len(),
         if connected.is_empty() { "belum ada".to_string() } else { connected }
     );

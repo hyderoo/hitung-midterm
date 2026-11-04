@@ -66,8 +66,8 @@ fn page_without_data_never_shows_zero_totals_or_control() {
         reason: "boom".into(),
     }];
     let html = page(&r, &failed, &hitung_midterm::projection::ProjResult::Failed("x".into()), View::Senate, chrono::Utc::now());
-    assert!(html.contains("0 dari 35 pemilihan kursi Senat sudah ada proyeksi atau hitungan"));
-    assert!(html.contains("Tidak tersedia"));
+    assert!(html.contains("0 dari 35 pemilihan kursi Senat sudah ada hitungan resmi"));
+    assert!(html.contains("Tidak ditampilkan"));
     assert!(html.contains("Gagal diperbarui"));
     assert!(!html.contains("dipanggil") && !html.contains("perlombaan"));
 }
