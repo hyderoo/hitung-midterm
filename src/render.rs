@@ -150,6 +150,37 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], view: View) -> String {
         m.width, m.height
     );
     let feed_of = |st: &str| feeds_ok(feeds).find(|f| f.state == st);
+    if view == View::House {
+        // One hard-stop gradient per state with data: bands are proportional to
+        // seats (of the state's total) by who leads, and the remainder is grey
+        // for seats without data. Bands are a seat split, not a state call.
+        o.push_str("<defs>");
+        for code in m.states.keys() {
+            let total = reference.house_seats.get(code).copied().unwrap_or(0);
+            if let Some(f) = feed_of(code).filter(|f| !f.house.is_empty() && total > 0) {
+                let mut t = Tally::default();
+                for c in &f.house {
+                    t.add(c.lead());
+                }
+                let have = f.house.len() as u32;
+                let nodata = total.saturating_sub(have) + t.novotes;
+                let parts = [(t.dem, "#2A3F73"), (t.rep, "#6E2B2A"), (t.other, "#44335C"), (t.tie, "#55524C"), (nodata, "#3A3A40")];
+                let _ = write!(o, "<linearGradient id=\"g-{code}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">");
+                let mut acc = 0u32;
+                for (n, col) in parts {
+                    if n == 0 {
+                        continue;
+                    }
+                    let a = acc as f64 * 100.0 / total as f64;
+                    acc += n;
+                    let b = acc as f64 * 100.0 / total as f64;
+                    let _ = write!(o, "<stop offset=\"{a:.2}%\" stop-color=\"{col}\"/><stop offset=\"{b:.2}%\" stop-color=\"{col}\"/>");
+                }
+                o.push_str("</linearGradient>");
+            }
+        }
+        o.push_str("</defs>");
+    }
     for (code, s) in &m.states {
         let (cls, tip) = match view {
             View::Senate => {
@@ -167,14 +198,29 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], view: View) -> String {
                 }
             }
             View::House => match feed_of(code) {
-                Some(f) if !f.house.is_empty() => (
-                    "has",
-                    format!("{}: {} dari {} kursi sudah ada data", s.name, f.house.len(), reference.house_seats.get(code).copied().unwrap_or(0)),
-                ),
+                Some(f) if !f.house.is_empty() => {
+                    let mut t = Tally::default();
+                    for c in &f.house {
+                        t.add(c.lead());
+                    }
+                    (
+                        "band",
+                        format!(
+                            "{}: {} dari {} kursi ada data. Unggul sementara: Demokrat {}, Republik {}, Lainnya {}",
+                            s.name,
+                            f.house.len(),
+                            reference.house_seats.get(code).copied().unwrap_or(0),
+                            t.dem,
+                            t.rep,
+                            t.other
+                        ),
+                    )
+                }
                 _ => ("none", format!("{}: data belum tersedia dari sumber resmi yang tersambung", s.name)),
             },
         };
-        let _ = write!(o, "<path class=\"st {cls}\" d=\"{}\"><title>{}</title></path>", s.d, esc(&tip));
+        let fill = if cls == "band" { format!(" style=\"fill:url(#g-{code})\"") } else { String::new() };
+        let _ = write!(o, "<path class=\"st {cls}\"{fill} d=\"{}\"><title>{}</title></path>", s.d, esc(&tip));
     }
     for (code, s) in &m.states {
         let off = view == View::Senate && !reference.in_senate_schedule(code);
@@ -243,7 +289,8 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], view: View, now: DateTi
         o.push_str("<li><i class=\"sw none\"></i>Ada pemilihan, data belum tersedia dari sumber yang tersambung</li>");
         o.push_str("<li><i class=\"sw off\"></i>Tidak ada pemilihan Senat (dari jadwal)</li>");
     } else {
-        o.push_str("<li><i class=\"sw has\"></i>Ada data kursi dari sumber resmi negara bagian</li>");
+        o.push_str("<li><i class=\"sw d lead\"></i><i class=\"sw r lead\"></i><i class=\"sw o lead\"></i>Pita warna = pembagian kursi yang unggul sementara, sebanding dengan jumlah kursi negara bagian</li>");
+        o.push_str("<li><i class=\"sw none\"></i>Abu-abu di dalam pita = kursi yang belum ada datanya</li>");
         o.push_str("<li><i class=\"sw none\"></i>Data belum tersedia dari sumber yang tersambung</li>");
         o.push_str("<li class=\"mute\">n/total: kursi yang sudah ada data / jumlah kursi negara bagian</li>");
     }
@@ -384,7 +431,14 @@ fn source_note(f: &StateFeed, now: DateTime<Utc>, stale: bool) -> String {
         esc(&f.source_label),
         wib(f.source_time),
         age(now, f.source_time),
-        if stale { " Sumber belum memperbarui data lebih dari 30 menit." } else { "" }
+        format!(
+            "{}{}",
+            if stale { " Sumber belum memperbarui data lebih dari 30 menit." } else { "" },
+            match &f.refresh_note {
+                Some(n) => format!(" Peringatan: {}.", esc(n)),
+                None => String::new(),
+            }
+        )
     )
 }
 
@@ -432,7 +486,7 @@ h1{font-size:30px;line-height:1.1;margin:26px 0 6px;font-weight:700}
 .st.off{fill:none;stroke:var(--dash);stroke-dasharray:3 3}
 .st.d{fill:#2A3F73;stroke:var(--blue);stroke-width:1.5}.st.r{fill:#6E2B2A;stroke:var(--red);stroke-width:1.5}
 .st.o{fill:#44335C;stroke:var(--purp);stroke-width:1.5}.st.tie{fill:#55524C;stroke:var(--ink);stroke-dasharray:4 2}
-.st.has{fill:#4A4A52}
+.st.band{stroke:#8A8A92;stroke-width:1.2}
 .lb{font:700 10.5px "Public Sans",sans-serif;fill:var(--mute);text-anchor:middle;pointer-events:none}.lb.off{fill:var(--dash)}
 .lb2{font:400 9px "Public Sans",sans-serif;fill:var(--mute);text-anchor:middle;pointer-events:none}
 .legend{list-style:none;padding:0;margin:14px 0 0;font-size:13px;display:grid;gap:6px}

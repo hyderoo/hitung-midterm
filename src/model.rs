@@ -86,6 +86,9 @@ pub struct StateFeed {
     pub source_time: DateTime<Utc>,
     pub senate: Option<Contest>,
     pub house: Vec<Contest>,
+    /// Set when this copy was served from the in-memory cache because the
+    /// latest refresh failed.
+    pub refresh_note: Option<String>,
 }
 
 #[derive(Clone, Debug)]

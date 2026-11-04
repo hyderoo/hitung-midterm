@@ -7,6 +7,10 @@ use crate::model::*;
 use chrono::{DateTime, Utc};
 use regex::Regex;
 use serde::Deserialize;
+use std::collections::HashMap;
+use std::sync::{Arc, OnceLock};
+use std::time::Instant;
+use tokio::sync::Mutex;
 
 #[derive(Deserialize)]
 struct Export {
@@ -126,29 +130,90 @@ pub fn parse_export(bytes: &[u8], cfg: &SourceCfg) -> Result<StateFeed, String> 
         source_time,
         senate,
         house,
+        refresh_note: None,
     })
 }
 
+/// Per-source cache kept in the warm function instance. The source files are
+/// large (27-48 MB), so one lock per source gives single-flight refreshes, a
+/// minimum interval between origin requests, and conditional requests
+/// (If-None-Match) so an unchanged file costs a 304 and no download.
+struct Entry {
+    checked: Instant,
+    etag: Option<String>,
+    feed: Option<StateFeed>,
+}
+
+pub const MIN_REFRESH_SECS: u64 = 90;
+/// A cached copy is served for at most this long after a failed refresh.
+pub const MAX_STALE_SERVE_SECS: u64 = 15 * 60;
+
+static CACHE: OnceLock<Mutex<HashMap<String, Arc<Mutex<Option<Entry>>>>>> = OnceLock::new();
+
+async fn slot(state: &str) -> Arc<Mutex<Option<Entry>>> {
+    let map = CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    let mut g = map.lock().await;
+    g.entry(state.to_string()).or_insert_with(|| Arc::new(Mutex::new(None))).clone()
+}
+
 pub async fn fetch_state(client: &reqwest::Client, cfg: &SourceCfg) -> FeedResult {
+    let slot = slot(&cfg.state).await;
+    let mut guard = slot.lock().await; // single flight per source
+    if let Some(e) = guard.as_ref() {
+        if e.checked.elapsed().as_secs() < MIN_REFRESH_SECS {
+            if let Some(f) = &e.feed {
+                return FeedResult::Ok(f.clone());
+            }
+        }
+    }
     let fail = |reason: String| FeedResult::Failed {
         state: cfg.state.clone(),
         source_label: cfg.label.clone(),
         human_url: cfg.human_url.clone(),
         reason,
     };
-    let resp = match client.get(&cfg.export_url).send().await {
-        Ok(r) => r,
-        Err(e) => return fail(format!("gagal menghubungi sumber: {e}")),
-    };
-    if !resp.status().is_success() {
-        return fail(format!("sumber membalas HTTP {}", resp.status().as_u16()));
+    let mut req = client.get(&cfg.export_url);
+    if let Some(Entry { etag: Some(t), feed: Some(_), .. }) = guard.as_ref() {
+        req = req.header("If-None-Match", t.clone());
     }
-    let bytes = match resp.bytes().await {
-        Ok(b) => b,
-        Err(e) => return fail(format!("gagal membaca data: {e}")),
-    };
-    match parse_export(&bytes, cfg) {
-        Ok(f) => FeedResult::Ok(f),
-        Err(e) => fail(e),
+    let outcome: Result<Option<(StateFeed, Option<String>)>, String> = async {
+        let resp = req.send().await.map_err(|e| format!("gagal menghubungi sumber: {e}"))?;
+        if resp.status().as_u16() == 304 {
+            return Ok(None);
+        }
+        if !resp.status().is_success() {
+            return Err(format!("sumber membalas HTTP {}", resp.status().as_u16()));
+        }
+        let etag = resp.headers().get("etag").and_then(|v| v.to_str().ok()).map(|s| s.to_string());
+        let bytes = resp.bytes().await.map_err(|e| format!("gagal membaca data: {e}"))?;
+        let feed = parse_export(&bytes, cfg)?;
+        Ok(Some((feed, etag)))
+    }
+    .await;
+    match outcome {
+        Ok(Some((feed, etag))) => {
+            *guard = Some(Entry { checked: Instant::now(), etag, feed: Some(feed.clone()) });
+            FeedResult::Ok(feed)
+        }
+        Ok(None) => {
+            // 304: the cached copy is still the current file.
+            if let Some(e) = guard.as_mut() {
+                e.checked = Instant::now();
+                if let Some(f) = &e.feed {
+                    return FeedResult::Ok(f.clone());
+                }
+            }
+            fail("sumber membalas 304 tanpa salinan tersimpan".into())
+        }
+        Err(reason) => {
+            if let Some(Entry { checked, feed: Some(f), .. }) = guard.as_ref() {
+                if checked.elapsed().as_secs() < MAX_STALE_SERVE_SECS {
+                    let mut f = f.clone();
+                    f.refresh_note = Some(format!("pembaruan terakhir gagal ({reason}); menampilkan salinan terakhir yang berhasil dibaca"));
+                    return FeedResult::Ok(f);
+                }
+            }
+            fail(reason)
+        }
     }
 }

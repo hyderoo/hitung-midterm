@@ -15,6 +15,22 @@ async fn handler(req: Request) -> Result<Response<ResponseBody>, Error> {
             .find(|(key, _)| *key == k)
             .map(|(_, v)| v.to_string())
     };
+    // Only these query forms are served. Anything else is redirected to a
+    // canonical URL without touching the sources, so random query strings
+    // cannot bypass the edge cache and trigger large refetches.
+    let canonical = match (query, param("view").as_deref(), param("format").as_deref()) {
+        ("", _, _) => None,
+        ("view=senat", _, _) | ("view=dpr", _, _) | ("format=json", _, _) => None,
+        (_, Some("dpr"), _) => Some("/?view=dpr"),
+        _ => Some("/"),
+    };
+    if let Some(to) = canonical {
+        return Ok(Response::builder()
+            .status(308)
+            .header("Location", to)
+            .header("Cache-Control", "public, max-age=0, s-maxage=3600")
+            .body(ResponseBody::from(String::new()))?);
+    }
     let reference = Reference::load();
     let feeds = load_all(&reference).await;
     let now = chrono::Utc::now();
