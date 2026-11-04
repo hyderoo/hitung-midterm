@@ -87,3 +87,12 @@ links to the results host.
   Last-Modified values sit within minutes of their labels (1130PM file
   modified 23:23 ET; 12AM file modified 00:04 ET Nov 4). The xlsx
   Last-Modified is the displayed source time; AM labels sort after PM.
+
+## Deferred and disqualified leads
+
+- WY (sos.wyo.gov) — OUT. Official unofficial-results page links statewide
+  summaries only as PDFs built with Type 3 fonts, custom encoding and no
+  ToUnicode maps; automated text extraction yields garbage and OCR is not
+  viable in the serverless pipeline. No HTML/JSON/CSV alternative linked.
+  robots.txt disallows only campaign-finance (WYCF) paths; the blocker is
+  format, not permission.
