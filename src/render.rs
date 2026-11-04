@@ -75,6 +75,7 @@ pub struct Tally {
     pub rep: u32,
     pub other: u32,
     pub tie: u32,
+    pub unresolved: u32,
     pub novotes: u32,
 }
 impl Tally {
@@ -84,13 +85,20 @@ impl Tally {
             Lead::Ahead(Party::Rep) => self.rep += 1,
             Lead::Ahead(Party::Other) => self.other += 1,
             Lead::Tie => self.tie += 1,
-            Lead::Unresolved => self.tie += 1,
+            Lead::Unresolved => self.unresolved += 1,
             Lead::NoVotes => self.novotes += 1,
         }
     }
     pub fn with_data(&self) -> u32 {
-        self.dem + self.rep + self.other + self.tie
+        self.dem + self.rep + self.other + self.tie + self.unresolved
     }
+}
+
+fn tally_caveat(t: &Tally) -> String {
+    let mut s = String::new();
+    if t.tie > 0 { s.push_str(&format!(" | Imbang {}", t.tie)); }
+    if t.unresolved > 0 { s.push_str(&format!(" | Belum dapat ditentukan {}", t.unresolved)); }
+    s
 }
 
 fn feeds_ok(feeds: &[FeedResult]) -> impl Iterator<Item = &StateFeed> {
@@ -200,7 +208,7 @@ fn map_svg(reference: &Reference, feeds: &[FeedResult], proj: Option<&Projection
                 }
                 let have = f.house.len() as u32;
                 let nodata = total.saturating_sub(have) + t.novotes;
-                let parts = [(t.dem, "#2A3F73"), (t.rep, "#6E2B2A"), (t.other, "#44335C"), (t.tie, "#55524C"), (nodata, "#3A3A40")];
+                let parts = [(t.dem, "#2A3F73"), (t.rep, "#6E2B2A"), (t.other, "#44335C"), (t.tie + t.unresolved, "#55524C"), (nodata, "#3A3A40")];
                 let _ = write!(o, "<linearGradient id=\"g-{code}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">");
                 let mut acc = 0u32;
                 for (n, col) in parts {
@@ -367,12 +375,12 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
     o.push_str("<ul class=\"legend\">");
     if view == View::Senate {
         o.push_str("<li><i class=\"sw d lead\"></i><i class=\"sw r lead\"></i><i class=\"sw o lead\"></i>Unggul sementara: urutan suara terbanyak sejauh ini, bukan hasil akhir</li>");
-        o.push_str("<li><i class=\"sw tie\"></i>Suara imbang</li>");
+        o.push_str("<li><i class=\"sw tie\"></i>Suara imbang atau atribusi suara belum jelas</li>");
         o.push_str("<li><i class=\"sw none\"></i>Ada pemilihan, data belum tersedia dari sumber yang tersambung</li>");
         o.push_str("<li><i class=\"sw off\"></i>Tidak ada pemilihan Senat (dari jadwal)</li>");
     } else {
         o.push_str("<li><i class=\"sw d lead\"></i><i class=\"sw r lead\"></i><i class=\"sw o lead\"></i>Pita warna = pembagian kursi yang unggul sementara, sebanding dengan jumlah kursi negara bagian</li>");
-        o.push_str("<li><i class=\"sw none\"></i>Abu-abu di dalam pita = kursi tanpa hitungan resmi dan tanpa proyeksi</li>");
+        o.push_str("<li><i class=\"sw none\"></i>Abu-abu gelap = belum ada data; abu-abu muda = imbang atau atribusi suara belum jelas</li>");
         o.push_str("<li><i class=\"sw none\"></i>Data belum tersedia dari sumber yang tersambung</li>");
         o.push_str("<li class=\"mute\">n/total: kursi dengan hitungan resmi / jumlah kursi negara bagian (proyeksi tidak masuk n)</li>");
     }
@@ -408,7 +416,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         let have = senate_total - nod;
         let _ = write!(o, "<div class=\"box\"><b>{} dari {} pemilihan kursi Senat sudah ada hitungan resmi</b>", have, senate_total);
         o.push_str(&seat_bar(
-            &[("pd", pj.dem), ("pr", pj.rep), ("po", pj.other), ("d lead", ol.dem), ("r lead", ol.rep), ("o lead", ol.other), ("tie", ol.tie), ("none", ol.novotes + nod)],
+            &[("pd", pj.dem), ("pr", pj.rep), ("po", pj.other), ("d lead", ol.dem), ("r lead", ol.rep), ("o lead", ol.other), ("tie", ol.tie + ol.unresolved), ("none", ol.novotes + nod)],
             senate_total,
         ));
         if proj.is_some() {
@@ -418,7 +426,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             if proj.is_some() { format!("Demokrat {} | Republik {} | Lainnya {}", pj.dem, pj.rep, pj.other) } else { "Tidak tersedia".to_string() }
         );
         }
-        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi sementara)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ol.dem, ol.rep, ol.other, if ol.tie > 0 { format!(" | Imbang {}", ol.tie) } else { String::new() }, nod + ol.novotes);
+        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi sementara)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ol.dem, ol.rep, ol.other, tally_caveat(&ol), nod + ol.novotes);
     } else {
         for (code, total) in &reference.house_seats {
             let off = ok.iter().find(|f| &f.state == code && !f.house.is_empty());
@@ -434,7 +442,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
         let have = ht.with_data() + h_proj_seats;
         let _ = write!(o, "<div class=\"box\"><b>{} dari {} kursi DPR sudah ada hitungan resmi</b>", have, house_total);
         let nodata = house_total.saturating_sub(have) + ht.novotes;
-        o.push_str(&seat_bar(&[("pd", hp_d), ("pr", hp_r), ("d lead", ht.dem), ("r lead", ht.rep), ("o lead", ht.other), ("tie", ht.tie), ("none", nodata)], house_total));
+        o.push_str(&seat_bar(&[("pd", hp_d), ("pr", hp_r), ("d lead", ht.dem), ("r lead", ht.rep), ("o lead", ht.other), ("tie", ht.tie + ht.unresolved), ("none", nodata)], house_total));
         if proj.is_some() {
         let _ = write!(
             o,
@@ -443,7 +451,7 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
             if proj.is_some() { format!("Demokrat {} | Republik {}", hp_d, hp_r) } else { "Tidak tersedia".to_string() }
         );
         }
-        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi sementara)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ht.dem, ht.rep, ht.other, if ht.tie > 0 { format!(" | Imbang {}", ht.tie) } else { String::new() }, nodata);
+        let _ = write!(o, "<p class=\"stat\"><b>Unggul sementara</b> <small class=\"mute\">(hitungan resmi sementara)</small><br><span class=\"mute\">Demokrat {} | Republik {} | Lainnya {}{}</span></p><p class=\"stat\"><b>Belum ada data</b><br><span class=\"mute\">{}</span></p></div>", ht.dem, ht.rep, ht.other, tally_caveat(&ht), nodata);
     }
     let chamber = if view == View::Senate { "Senat" } else { "DPR" };
     let _ = write!(
@@ -526,11 +534,20 @@ pub fn page(reference: &Reference, feeds: &[FeedResult], projr: &ProjResult, vie
                 t.rep,
                 t.other
             );
+            if t.unresolved > 0 {
+                let _ = write!(o, "<small class=\"mute\">{} distrik belum dapat ditentukan karena atribusi suara belum jelas.</small>", t.unresolved);
+            }
             o.push_str("<details><summary>Rincian per distrik</summary>");
             for c in &f.house {
-                let _ = write!(o, "<div class=\"dist\"><b>{}</b>", esc(&c.label));
+                let _ = write!(o, "<div class=\"dist\"><b>{}</b><small class=\"mute\">{}</small>", esc(&c.label), lead_text(c.lead()));
                 for cand in c.candidates.iter().take(3) {
                     o.push_str(&cand_line(cand));
+                }
+                if c.write_in > 0 {
+                    let _ = write!(o, "<span class=\"cand mute\">Tulis tangan (write-in) <b>{}</b></span>", num(c.write_in));
+                }
+                if c.unresolved > 0 {
+                    let _ = write!(o, "<span class=\"cand mute\">Suara tanpa atribusi kandidat <b>{}</b></span>", num(c.unresolved));
                 }
                 let _ = write!(o, "<small class=\"mute\">{}. Waktu sumber {}.</small>", precinct_line(c), wib(f.source_time));
                 o.push_str("</div>");

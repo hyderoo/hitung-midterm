@@ -529,3 +529,12 @@ fn unresolved_votes_veto_a_lead_when_they_could_change_ranking() {
     c2.unresolved = 5;
     assert_eq!(c2.lead(), Lead::Ahead(Party::Dem));
 }
+
+#[test]
+fn unresolved_is_not_counted_as_a_tie() {
+    let mut t = Tally::default();
+    t.add(Lead::Unresolved);
+    assert_eq!(t.tie, 0);
+    assert_eq!(t.unresolved, 1);
+    assert_eq!(t.with_data(), 1);
+}

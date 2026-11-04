@@ -1155,7 +1155,7 @@ pub fn njclarity_merge(docs: &[(String, Vec<u8>)], cfg: &SourceCfg) -> Result<(O
                     .filter(|p| !p.is_empty());
                 let (display, prefix_party) = match raw.split_once(' ') {
                     Some((pre, rest))
-                        if pre.chars().all(|c| c.is_ascii_uppercase()) && pre.len() <= 5 && !rest.is_empty() =>
+                        if matches!(pre, "DEM" | "REP" | "NPC" | "NPD" | "IND" | "LIB" | "GRN") && !rest.is_empty() =>
                     {
                         (rest.to_string(), Some(pre.to_string()))
                     }
